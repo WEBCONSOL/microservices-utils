@@ -39,7 +39,7 @@ class ListModel implements JsonSerializable, Countable
             $this->valueType = 'file';
         }
         else {
-            $this->data = array($v);
+            $this->data = empty($v) ? [] : [$v];
             $this->valueType = 'string';
         }
     }
