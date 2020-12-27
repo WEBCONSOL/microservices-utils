@@ -2,9 +2,6 @@
 
 namespace Ezpizee\Utils;
 
-use Ezpizee\Utils\ListModel;
-use Ezpizee\Utils\StringUtil;
-
 final class PathInfo
 {
     private $http = 'http://';
