@@ -19,7 +19,6 @@ final class Request
     public function __construct(array $opts = array()) {
         $this->opts = $opts;
         $this->isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest' : false;
-        self::$data['header'] = getallheaders();
         self::$data['method'] = strtoupper($_SERVER["REQUEST_METHOD"]);
         self::$data['isHttps'] = (int)$_SERVER['SERVER_PORT']===443||(isset($_SERVER['HTTP_X_FORWARDED_PROTO'])&&$_SERVER['HTTP_X_FORWARDED_PROTO']==="https")||isset($_SERVER['HTTP_X_FORWARDED_SSL'])||isset($_SERVER['HTTPS'])?true:false;
         self::$data['pathInfo'] = new PathInfo($_SERVER["REQUEST_URI"]);
@@ -118,12 +117,20 @@ final class Request
 
     private function checkIfTheRequestIsFormSubmission(): void {
         self::$data['header'] = getallheaders();
+        if (empty(self::$data['header'])) {
+            if (!empty($this->slimRequest)) {
+                self::$data['header'] = $this->slimRequest->getHeaders();
+            }
+            else {
+                self::$data['header'] = [];
+            }
+        }
         $obj = $this->getHeaderParam('Access-Control-Request-Headers');
         if (!empty($obj)) {
             self::$data['header']['headerParamKeys'] = is_array($obj) || is_object($obj) ? json_encode($obj) : $obj;
         }
         else {
-            self::$data['header']['headerParamKeys'] = implode(',', array_keys(self::$requestData['header']));
+            self::$data['header']['headerParamKeys'] = implode(',', array_keys(self::$data['header']));
         }
 
         if ($this->method() === "POST") {
