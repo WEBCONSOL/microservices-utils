@@ -21,7 +21,7 @@ final class RequestEndpointValidator
 
   public static function getEndpointsConfigData(): array {return self::$endpoints;}
 
-  private static function validateUri(string $uri): bool {
+  protected static function validateUri(string $uri): bool {
     foreach (self::$endpoints as $endpoint => $cp) {
       if (PathUtil::isUriMatch($endpoint, $uri)) {
         self::$contextProcessorNamespace = $cp.'\\ContextProcessor';
@@ -32,7 +32,7 @@ final class RequestEndpointValidator
     return false;
   }
 
-  private static function loadEndpointsFromConfig($data) {
+  protected static function loadEndpointsFromConfig($data) {
     if (empty(self::$endpoints)) {
       if (is_array($data)) {
         self::$endpoints = $data;
