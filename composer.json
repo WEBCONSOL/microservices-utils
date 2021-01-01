@@ -1,7 +1,7 @@
 {
     "name": "ezpizee/utils",
     "description": "For all Ezpizee utility classes",
-    "homepage": "https://github.com/WEBCONSOL/microservices-utils",
+    "homepage": "https://github.com/ezpizee/microservices-utils",
     "type": "library",
     "minimum-stability": "dev",
     "prefer-stable": true,
