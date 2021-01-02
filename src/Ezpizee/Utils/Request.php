@@ -88,7 +88,7 @@ final class Request
     }
 
     public function getFiles(): array {return isset($_FILES) && !empty($_FILES) ? $_FILES : [];}
-    public function contentType(): string {return isset($_SERVER["CONTENT_TYPE"]) ? $_SERVER["CONTENT_TYPE"] : "application/json";}
+    public function contentType(): string {return trim(explode(';', $this->getHeaderParam('Content-Type'))[0]);}
     public function method(): string {return !empty($this->slimRequest) ? $this->slimRequest->getMethod() : self::$data['method'];}
     public function isAjax(): bool {return $this->isAjax;}
     public function hasFormSubmission(): bool {return $this->method() === 'POST' && $this->isFormSubmission;}
