@@ -87,9 +87,7 @@ final class Request
         return !empty($v) ? str_replace("Basic ", '', $v) : $v;
     }
 
-    public function contentType(): string {
-        return isset($_SERVER["CONTENT_TYPE"]) ? $_SERVER["CONTENT_TYPE"] : "application/json";
-    }
+    public function contentType(): string {return isset($_SERVER["CONTENT_TYPE"]) ? $_SERVER["CONTENT_TYPE"] : "application/json";}
     public function method(): string {return !empty($this->slimRequest) ? $this->slimRequest->getMethod() : self::$data['method'];}
     public function isAjax(): bool {return $this->isAjax;}
     public function hasFormSubmission(): bool {return $this->method() === 'POST' && $this->isFormSubmission;}
