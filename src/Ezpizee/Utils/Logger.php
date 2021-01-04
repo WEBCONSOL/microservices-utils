@@ -106,4 +106,28 @@ final class Logger
         }
         return $message;
     }
+
+    public static function testDisplay($val, bool $isJSON=false): void
+    {
+        if (!$isJSON) {
+            echo '<pre>';
+            if (is_array($val) || is_object($val)) {
+                print_r($val);
+            }
+            else if (is_string($val)) {
+                echo $val;
+            }
+            echo '</pre>';
+        }
+        else {
+            header('Content-type: application/json');
+            if (is_array($val) || is_object($val)) {
+                echo json_encode($val);
+            }
+            else if (is_string($val)) {
+                echo json_encode([$val]);
+            }
+        }
+        die();
+    }
 }

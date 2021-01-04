@@ -2,7 +2,7 @@
 
 namespace Ezpizee\Utils;
 
-final class UUID
+class UUID
 {
     private function __construct(){}
 

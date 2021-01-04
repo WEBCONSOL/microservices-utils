@@ -2,7 +2,7 @@
 
 namespace Ezpizee\Utils;
 
-final class SKU
+class SKU
 {
     protected static $PFX = 'SKU';
 

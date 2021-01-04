@@ -5,7 +5,7 @@ namespace Ezpizee\Utils;
 use JsonSerializable;
 use RuntimeException;
 
-final class Response implements JsonSerializable
+class Response implements JsonSerializable
 {
     private $method = '';
     private $endpoint = '';

@@ -8,7 +8,7 @@ class Password
 {
     private function __construct(){}
 
-    public static function encrypt(string $pwd): string {
+    public static final function encrypt(string $pwd): string {
         if ($pwd) {
             return password_hash($pwd, PASSWORD_BCRYPT);
         }
@@ -17,7 +17,7 @@ class Password
         }
     }
 
-    public static function verify(string $pwd, string $hashedPwd): bool {
+    public static final function verify(string $pwd, string $hashedPwd): bool {
         if ($pwd && $hashedPwd) {
             return password_verify($pwd, $hashedPwd);
         }

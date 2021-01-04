@@ -2,10 +2,10 @@
 
 namespace Ezpizee\Utils;
 
-final class Request
+class Request
 {
-    private static $requestData = [];
-    private static $data;
+    protected static $requestData = [];
+    protected static $data;
 
     private $isAjax = false;
     private $isFormSubmission = false;

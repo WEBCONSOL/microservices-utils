@@ -17,7 +17,9 @@
         }
     ],
     "require": {
-        "php": ">=7.0"
+        "php": ">=7.0",
+        "lcobucci/jwt": "^3.3",
+        "giggsey/libphonenumber-for-php": "8.12.7.1"
     },
     "autoload": {
         "psr-0": {

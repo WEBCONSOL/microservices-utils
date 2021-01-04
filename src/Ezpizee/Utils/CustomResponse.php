@@ -19,13 +19,13 @@ class CustomResponse
     private static $debug = false;
     private static $debugInfo = null;
 
-    public static function setDebug(bool $debug) {self::$debug = $debug;}
-    public static function setDebugInfo($debug) {self::$debugInfo = $debug;}
-    public static function getDebugInfo() {return self::$debugInfo;}
+    public static final function setDebug(bool $debug) {self::$debug = $debug;}
+    public static final function setDebugInfo($debug) {self::$debugInfo = $debug;}
+    public static final function getDebugInfo() {return self::$debugInfo;}
 
-    public static function getDebug(): bool {return (self::$debug || (defined('DEBUG') && DEBUG === true));}
+    public static final function getDebug(): bool {return (self::$debug || (defined('DEBUG') && DEBUG === true));}
 
-    public static function render(int $code, $msg=null, bool $status=true, array $data=array()): string
+    public static final function render(int $code, $msg=null, bool $status=true, array $data=array()): string
     {
         if (!in_array($code, CustomResponse::HTTP_RESPONSE_CODES)) {
             $code = 500;
@@ -37,7 +37,7 @@ class CustomResponse
         exit(0);
     }
 
-    public static function getOutputFormattedAsArray(array $data=null, int $code=200, $msg=null, bool $status=true): array
+    public static final function getOutputFormattedAsArray(array $data=null, int $code=200, $msg=null, bool $status=true): array
     {
         $file = __DIR__ . DS.'data'.DS . $code . '.json';
         if (file_exists($file)) {
@@ -61,12 +61,12 @@ class CustomResponse
         return $output;
     }
 
-    public static function getOutputFormattedAsString(array $data=null, int $code=200, $msg=null, $status=true): string
+    public static final function getOutputFormattedAsString(array $data=null, int $code=200, $msg=null, $status=true): string
     {
         return json_encode(self::getOutputFormattedAsArray($data, $code, $msg, $status));
     }
 
-    public static function renderJSONString(string $data)
+    public static final function renderJSONString(string $data)
     {
         header('Content-Type: application/json; charset=utf-8');
         http_response_code(500);
@@ -75,7 +75,7 @@ class CustomResponse
         exit(0);
     }
 
-    public static function renderPlaintext(string $data)
+    public static final function renderPlaintext(string $data)
     {
         header('Content-Type: text/html; charset=utf-8');
         http_response_code(500);
@@ -83,7 +83,7 @@ class CustomResponse
         exit(0);
     }
 
-    public static function debugBacktrace(): array
+    public static final function debugBacktrace(): array
     {
         $d1 = debug_backtrace();
         $d2 = [];
