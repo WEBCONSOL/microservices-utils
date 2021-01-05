@@ -37,7 +37,7 @@ class Request
 
     public function setRequestParam($key, $val): void {$this->requestData[$key] = $val;}
 
-    public function getRequestParam($param, $default = null) {
+    public function getRequestParam($param, $default = null, bool $asString=false) {
         $v = $default;
         if (isset($this->requestData[$param])) {
             $v = $this->requestData[$param];
@@ -45,7 +45,10 @@ class Request
         else if (!empty($this->slimRequest)) {
             $v = $this->slimRequest->getParam($param, $default);
         }
-        if (EncodingUtil::isValidJSON($v)) {
+        if ($asString && (is_array($v) || is_object($v))) {
+            $v = json_encode($v);
+        }
+        else if (EncodingUtil::isValidJSON($v)) {
             return json_decode($v, true);
         }
         return $v;
