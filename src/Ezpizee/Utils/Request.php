@@ -4,9 +4,8 @@ namespace Ezpizee\Utils;
 
 class Request
 {
-    protected static $requestData = [];
     protected static $data;
-
+    private $requestData = [];
     private $isAjax = false;
     private $isFormSubmission = false;
     private $opts = [];
@@ -16,7 +15,8 @@ class Request
      */
     private $slimRequest;
 
-    public function __construct(array $opts = array()) {
+    public function __construct(array $opts = array())
+    {
         $this->opts = $opts;
         $this->isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest' : false;
         self::$data['method'] = strtoupper($_SERVER["REQUEST_METHOD"]);
@@ -26,7 +26,8 @@ class Request
         $this->checkIfTheRequestIsFormSubmission();
     }
 
-    public function setSlimRequest($request) {
+    public function setSlimRequest($request)
+    {
         if (class_exists('\Slim\Http\Request', false)) {
             if ($request instanceof \Slim\Http\Request) {
                 $this->slimRequest = $request;
@@ -34,12 +35,12 @@ class Request
         }
     }
 
-    public function setRequestParam($key, $val): void {self::$requestData[$key] = $val;}
+    public function setRequestParam($key, $val): void {$this->requestData[$key] = $val;}
 
     public function getRequestParam($param, $default = null) {
         $v = $default;
-        if (isset(self::$requestData[$param])) {
-            $v = self::$requestData[$param];
+        if (isset($this->requestData[$param])) {
+            $v = $this->requestData[$param];
         }
         else if (!empty($this->slimRequest)) {
             $v = $this->slimRequest->getParam($param, $default);
@@ -51,7 +52,7 @@ class Request
     }
 
     public function hasRequestParam($param): bool {
-        return isset(self::$requestData[$param]) ||
+        return isset($this->requestData[$param]) ||
             (!empty($this->slimRequest) &&
                 ($this->slimRequest->getParam($param)!==null || $this->slimRequest->getParsedBodyParam($param)!==null)
             );
@@ -114,10 +115,11 @@ class Request
 
     public function getHeaderKeysAsString(): string {return self::$data['headerParamKeys'];}
 
-    public function getRequestObjectAsArray(): array {return is_array(self::$requestData) ? self::$requestData : [];}
+    public function getRequestObjectAsArray(): array {return is_array($this->requestData) ? $this->requestData : [];}
     public function getRequestParamsAsArray():array {return $this->getRequestObjectAsArray();}
 
-    private function checkIfTheRequestIsFormSubmission(): void {
+    private function checkIfTheRequestIsFormSubmission(): void
+    {
         self::$data['header'] = getallheaders();
         if (empty(self::$data['header'])) {
             if (!empty($this->slimRequest)) {
@@ -138,50 +140,50 @@ class Request
         if ($this->method() === "POST") {
             if ((is_array($_POST) && !empty($_POST)) || (isset($_FILES) && is_array($_FILES) && !empty($_FILES))) {
                 $this->isFormSubmission = true;
-                self::$requestData = $_POST;
+                $this->requestData = $_POST;
             }
             else {
                 $requestBody = file_get_contents("php://input");
                 if ($requestBody) {
                     if (EncodingUtil::isValidJSON($requestBody)) {
-                        self::$requestData = json_decode($requestBody, true);
+                        $this->requestData = json_decode($requestBody, true);
                     }
                     else {
-                        parse_str($requestBody, self::$requestData);
+                        parse_str($requestBody, $this->requestData);
                     }
 
-                    $arrKeys = array_keys(self::$requestData);
+                    $arrKeys = array_keys($this->requestData);
 
                     if (isset($arrKeys[0]) && strpos($arrKeys[0], '------') !== false &&
                         (strpos($arrKeys[0], 'Content-Disposition:_form-data;_name') !== false ||
                             strpos($arrKeys[0], 'Content-Disposition:_attachment;_name') !== false)) {
-                        self::$requestData = array();
-                        $this->parseRawHttpRequest(self::$requestData);
+                        $this->requestData = array();
+                        $this->parseRawHttpRequest($this->requestData);
                     }
                     $this->isFormSubmission = true;
                 }
             }
 
             if (!empty($_GET)) {
-                self::$requestData = array_merge(self::$requestData, $_GET);
+                $this->requestData = array_merge($this->requestData, $_GET);
             }
         }
         else if ($this->method() === "DELETE" || $this->method() === "PUT" || $this->method() === "PATCH") {
             $requestBody = file_get_contents("php://input");
             if ($requestBody) {
                 if (EncodingUtil::isValidJSON($requestBody)) {
-                    self::$requestData = json_decode($requestBody, true);
+                    $this->requestData = json_decode($requestBody, true);
                 }
                 else {
-                    parse_str($requestBody, self::$requestData);
+                    parse_str($requestBody, $this->requestData);
                 }
             }
             if (!empty($_GET)) {
-                self::$requestData = array_merge(self::$requestData, $_GET);
+                $this->requestData = array_merge($this->requestData, $_GET);
             }
         }
         else if ($this->method() === 'GET') {
-            self::$requestData = is_array($_GET) && !empty($_GET) ? $_GET : [];
+            $this->requestData = is_array($_GET) && !empty($_GET) ? $_GET : [];
         }
     }
 
