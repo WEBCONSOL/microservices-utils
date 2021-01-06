@@ -2,13 +2,15 @@
 
 namespace Ezpizee\Utils;
 
+use Slim\Http\UploadedFile;
+
 class Request
 {
     protected static $data;
     private $requestData = [];
     private $isAjax = false;
     private $isFormSubmission = false;
-    private $opts = [];
+    private $files = [];
 
     /**
      * @var \Slim\Http\Request
@@ -17,7 +19,9 @@ class Request
 
     public function __construct(array $opts = array())
     {
-        $this->opts = $opts;
+        if (isset($opts['request'])) {
+            $this->setSlimRequest($opts['request']);
+        }
         $this->isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest' : false;
         self::$data['method'] = strtoupper($_SERVER["REQUEST_METHOD"]);
         self::$data['isHttps'] = (int)$_SERVER['SERVER_PORT'] === 443 || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === "https") || isset($_SERVER['HTTP_X_FORWARDED_SSL']) || isset($_SERVER['HTTPS']) ? true : false;
@@ -46,10 +50,18 @@ class Request
             self::$data['header']['headerParamKeys'] = implode(',', array_keys(self::$data['header']));
         }
 
-        if ($this->method() === "POST") {
-            if ((is_array($_POST) && !empty($_POST)) || (isset($_FILES) && is_array($_FILES) && !empty($_FILES))) {
+        if (!empty($this->slimRequest) && class_exists('\Slim\Http\Request', false)) {
+            $this->loadRequestDataFromSlimRequest();
+        }
+        else if ($this->method() === "POST") {
+             if ((is_array($_POST) && !empty($_POST)) || (isset($_FILES) && is_array($_FILES) && !empty($_FILES))) {
+                if (is_array($_POST) && !empty($_POST)) {
+                    $this->requestData = $_POST;
+                }
+                if (is_array($_FILES) && !empty($_FILES)) {
+                    $this->files = $_FILES;
+                }
                 $this->isFormSubmission = true;
-                $this->requestData = $_POST;
             }
             else {
                 $requestBody = file_get_contents("php://input");
@@ -69,6 +81,7 @@ class Request
                         $this->requestData = array();
                         $this->parseRawHttpRequest($this->requestData);
                     }
+
                     $this->isFormSubmission = true;
                 }
             }
@@ -94,6 +107,18 @@ class Request
         else if ($this->method() === 'GET') {
             $this->requestData = is_array($_GET) && !empty($_GET) ? $_GET : [];
         }
+    }
+
+    public function getFiles(string $key = '')
+    : array
+    {
+        if (!empty($this->files)) {
+            return !empty($key) ? (isset($this->files[$key]) ? $this->files[$key] : []) : $this->files;
+        }
+        else if (is_array($_FILES) && !empty($_FILES)) {
+            return !empty($key) ? (isset($_FILES[$key]) ? $_FILES[$key] : []) : $_FILES;
+        }
+        return [];
     }
 
     public function getHeaderParam($param, $default = '')
@@ -222,12 +247,6 @@ class Request
         return !empty($v) ? str_replace("Basic ", '', $v) : $v;
     }
 
-    public function getFiles()
-    : array
-    {
-        return isset($_FILES) && !empty($_FILES) ? $_FILES : [];
-    }
-
     public function contentType()
     : string
     {
@@ -301,7 +320,7 @@ class Request
     public function getHeaderKeysAsString()
     : string
     {
-        return self::$data['headerParamKeys'];
+        return isset(self::$data['header']['headerParamKeys']) ? self::$data['header']['headerParamKeys'] : '';
     }
 
     public function getRequestParamsAsArray()
@@ -344,5 +363,55 @@ class Request
     : PathInfo
     {
         return self::$data['pathInfo'];
+    }
+
+    public function getHeaderCookies():
+    array
+    {
+        $cookies = array();
+        if (isset(self::$data['header']) && !empty(self::$data['header']) && isset(self::$data['header']['Cookie'])) {
+            $headerCookies = explode('; ', self::$data['header']['Cookie']);
+            foreach($headerCookies as $itm) {
+                list($key, $val) = explode('=', $itm,2);
+                $cookies[$key] = $val;
+            }
+        }
+        return $cookies;
+    }
+
+    public static final function jsonStringToParamsBodyRequest(string &$jsonStr)
+    : void
+    {
+        $arr = [];
+        $obj = json_decode($jsonStr, true);
+        foreach ($obj as $k=>$v) {
+            $arr[] = $k.'="'.(is_array($v) ? json_encode($v) : $v).'"';
+        }
+        $jsonStr = implode('&amp;', $arr);
+    }
+
+    private function loadRequestDataFromSlimRequest()
+    : void
+    {
+        if (empty($this->requestData) && !empty($this->slimRequest)) {
+            if ($this->slimRequest instanceof \Slim\Http\Request) {
+                if ($this->slimRequest->getMediaType() === Constants::HEADER_CONTENT_TYPE_VALUE_MULTIPARTS) {
+                    $this->requestData = $this->slimRequest->getParsedBody();
+                    $this->files = !empty($_FILES) ? $_FILES : [];
+                }
+                else {
+                    $this->requestData = $this->slimRequest->getParsedBody();
+                }
+                if (empty($this->requestData)) {
+                    $data = $this->slimRequest->getBody()->getContents();
+                    if (!empty($data)) {
+                        $this->requestData = json_decode($data, true);
+                    }
+                }
+                if (is_object($this->requestData)) {
+                    $this->requestData = json_decode(json_encode($this->requestData), true);
+                }
+            }
+        }
     }
 }

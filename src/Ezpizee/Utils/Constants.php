@@ -5,6 +5,9 @@ namespace Ezpizee\Utils;
 class Constants
 {
     const ACCESS_TOKEN_TLS_VALUE = 1 * 60 * 60 * 1000;
+    const HEADER_CONTENT_TYPE = "Content-Type";
+    const HEADER_CONTENT_TYPE_VALUE_JSON = "application/json";
+    const HEADER_CONTENT_TYPE_VALUE_MULTIPARTS = "multipart/form-data";
     const HEADER_ACCESS_TOKEN = "Access-Token";
     const HEADER_APP_NAME = "App-Name";
     const HEADER_STORE_ID = "Store-ID";
