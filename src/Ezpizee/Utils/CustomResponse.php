@@ -35,11 +35,9 @@ class CustomResponse
         if (!in_array($code, CustomResponse::HTTP_RESPONSE_CODES)) {
             $code = 500;
         }
-
         header('Content-Type: application/json; charset=utf-8');
         http_response_code($code);
-        self::getOutputFormattedAsString($data, $code, $msg, $status);
-        exit(0);
+        die(self::getOutputFormattedAsString($data, $code, $msg, $status));
     }
 
     public static final function getOutputFormattedAsString(array $data = null, int $code = 200, $msg = null, $status = true)
@@ -109,20 +107,24 @@ class CustomResponse
         return $d2;
     }
 
-    public static final function renderJSONString(string $data)
+    public static final function renderJSONString(string $data, int $code = 200): void
     {
+        if (!in_array($code, CustomResponse::HTTP_RESPONSE_CODES)) {
+            $code = 500;
+        }
         header('Content-Type: application/json; charset=utf-8');
-        http_response_code(500);
+        http_response_code($code);
         //header('Content-Disposition','attachment;filename="'.uniqid('json-file-').'.json"');
-        json_encode($data);
-        exit(0);
+        die($data);
     }
 
-    public static final function renderPlaintext(string $data)
+    public static final function renderPlaintext(string $data, int $code = 200)
     {
+        if (!in_array($code, CustomResponse::HTTP_RESPONSE_CODES)) {
+            $code = 500;
+        }
         header('Content-Type: text/html; charset=utf-8');
-        http_response_code(500);
-        json_encode($data);
-        exit(0);
+        http_response_code($code);
+        die($data);
     }
 }
