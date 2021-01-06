@@ -2,8 +2,6 @@
 
 namespace Ezpizee\Utils;
 
-use Slim\Http\UploadedFile;
-
 class Request
 {
     protected static $data;
