@@ -3,7 +3,7 @@
 namespace Ezpizee\Utils;
 
 if (!class_exists('Lcobucci\JWT\Builder', false)) {
-    throw new \RuntimeException("Ezpizee\Utils\JWT require lcobucci/jwt", 500);
+    throw new \RuntimeException("Ezpizee\Utils\JWT requires lcobucci/jwt", 500);
 }
 
 use Lcobucci\JWT\Builder;
