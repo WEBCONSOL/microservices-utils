@@ -49,12 +49,12 @@ class CustomResponse
     public static final function getOutputFormattedAsArray(array $data = null, int $code = 200, $msg = null, bool $status = true)
     : array
     {
-        $file = __DIR__ . DS . 'data' . DS . $code . '.json';
+        $file = __DIR__ . EZPIZEE_DS. 'data' . EZPIZEE_DS. $code . '.json';
         if (file_exists($file)) {
             $output = json_decode(file_get_contents($file), true);
         }
         else {
-            $output = json_decode(file_get_contents(__DIR__ . DS . 'data' . DS . '500.json'), true);
+            $output = json_decode(file_get_contents(__DIR__ . EZPIZEE_DS. 'data' . EZPIZEE_DS. '500.json'), true);
         }
         $output['status'] = $code === 200 || $status ? 'OK' : 'ERROR';
         $output['code'] = $code;
