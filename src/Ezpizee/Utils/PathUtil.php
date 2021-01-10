@@ -91,4 +91,10 @@ final class PathUtil
         }
         return array();
     }
+
+    public static function isExternal(string $url)
+    : bool
+    {
+        return StringUtil::startsWith($url, 'https://') || StringUtil::startsWith($url, 'http://');
+    }
 }
