@@ -173,11 +173,12 @@ final class RequestBodyValidator
             if (isset($v[0])) {
                 foreach ($v as $data) {
                     if (is_string($data) || is_numeric($data) || is_bool($data)) {
-                        if (sizeof($elements) && !in_array($data, $elements)) {
+                        if (!empty($elements) && !in_array($data, $elements)) {
+                            $field = new ListModel(['field'=>$field->getAsArray(), 'value'=>$v]);
                             self::throwError($field);
                         }
                     }
-                    else if (is_array($data) && sizeof($elements)) {
+                    else if (is_array($data) && !empty($elements)) {
                         foreach ($elements as $element) {
                             $newField = new ListModel($element);
                             if (isset($data[$newField->get('name')])) {
@@ -190,18 +191,22 @@ final class RequestBodyValidator
                     }
                 }
             }
-            else {
-                if (is_array($elements) && !empty($elements)) {
+            else if (is_array($elements)) {
+                if (!empty($elements)) {
                     $n = 0;
                     $j = 0;
+                    $element = null;
+                    $found = [];
                     foreach ($elements as $i => $element) {
                         if (is_array($element) && isset($element['name']) && isset($v[$element['name']])) {
                             $n++;
+                            $found[] = $element;
                             self::validate(new ListModel($element), $v[$element['name']]);
                         }
                         $j++;
                     }
                     if ($n !== $j) {
+                        $field = new ListModel(['field'=>$field->getAsArray(), 'value'=>$v, 'n'=>$n, 'j'=>$j, 'element'=>$element, 'found'=>$found]);
                         self::throwError($field);
                     }
                 }
@@ -210,6 +215,7 @@ final class RequestBodyValidator
                     if (!empty($defaultValue)) {
                         foreach ($v as $arrVal) {
                             if (!in_array($arrVal, $defaultValue)) {
+                                $field = new ListModel(['field'=>$field->getAsArray(), 'value'=>$v]);
                                 self::throwError($field);
                             }
                         }
@@ -218,9 +224,11 @@ final class RequestBodyValidator
             }
         }
         else if (is_string($v) || is_numeric($v) || is_null($v) || is_bool($v)) {
+            $field = new ListModel(['field'=>$field->getAsArray(), 'value'=>$v]);
             self::throwError($field);
         }
         else if (!empty($field->get('elements', []))) {
+            $field = new ListModel(['field'=>$field->getAsArray(), 'value'=>$v]);
             self::throwError($field);
         }
     }

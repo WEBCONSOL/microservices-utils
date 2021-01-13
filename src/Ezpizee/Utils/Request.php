@@ -297,6 +297,11 @@ class Request
         return $default;
     }
 
+    public function getRequestParamAsInt($param, $default = '0'): int {return (int)$this->getRequestParam($param, $default, true);}
+    public function getRequestParamAsFloat($param, $default = '0.00'): int {return (float)$this->getRequestParam($param, $default, true);}
+    public function getRequestParamAsString($param, $default = ''): string {return $this->getRequestParam($param, $default, true);}
+    public function getRequestParamAsBoolean($param, $default = 'false'): bool {return (bool)$this->getRequestParam($param, $default, true);}
+
     public function getRequestParam($param, $default = null, bool $asString = false)
     {
         $v = $default;

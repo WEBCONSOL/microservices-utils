@@ -255,4 +255,13 @@ final class StringUtil
         }
         return $newIds;
     }
+
+    public static function removeWhitespace(string $text)
+    : string
+    {
+        $text = preg_replace('/[\t\r\n]+/', ' ', $text);
+        $text = preg_replace('/\s\s+/', ' ', $text);
+        $text = str_replace(['( ',' )','> <'], ['(',')','><'], $text);
+        return $text;
+    }
 }
