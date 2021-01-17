@@ -211,6 +211,14 @@ class Request
         $this->requestData[$key] = $val;
     }
 
+    public function removeRequestParam($key)
+    : void
+    {
+        if (isset($this->requestData[$key])) {
+            unset($this->requestData[$key]);
+        }
+    }
+
     public function hasRequestParam($param)
     : bool
     {
