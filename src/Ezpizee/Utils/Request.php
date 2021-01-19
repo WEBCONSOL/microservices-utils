@@ -390,6 +390,8 @@ class Request
         return $cookies;
     }
 
+    public function getRequestHeaders(): array {return isset(self::$data['header']) ? self::$data['header'] : getallheaders();}
+
     public static final function jsonStringToParamsBodyRequest(string &$jsonStr)
     : void
     {
