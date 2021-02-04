@@ -427,4 +427,37 @@ class Request
             }
         }
     }
+
+    public function hasReferer(): bool {return !empty(self::$data['referer']);}
+
+    public function getUserInfoAsUniqueId(): string {
+        return md5(json_encode($this->getUserInfo()));
+    }
+
+    public function getUserInfo(): array
+    {
+        $referer = [];
+        if ($this->hasReferer()) {
+            $pathInfo = new PathInfo(self::$data['referer']);
+            $referer = ['referer_host'=>$pathInfo->getHost(), 'referer_schema'=>$pathInfo->getSchema()];
+        }
+        return [
+            'user_agent' => $this->getHeaderParam('User-Agent'),
+            'user_ip' => $this->userIpAddr(),
+            'referer' => $referer
+        ];
+    }
+
+    private function userIpAddr(){
+        if(!empty($_SERVER['HTTP_CLIENT_IP'])){
+            //ip from share internet
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        }elseif(!empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
+            //ip pass from proxy
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        }else{
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+        return $ip;
+    }
 }
