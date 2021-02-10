@@ -7,34 +7,46 @@ final class RequestEndpointValidator
     private static $endpoints = [];
     private static $uriParams = [];
     private static $contextProcessorNamespace = '';
+    private static $data = [];
 
-    private function __construct()
-    {
-    }
-
-    public static function reset()
-    : void
-    {
-        self::$endpoints = [];
-        self::$uriParams = [];
-        self::$contextProcessorNamespace = '';
-    }
+    private function __construct() {}
 
     public static function validate(string $uri, $data = null)
     : void
     {
-        self::loadEndpointsFromConfig($data);
+        $merge = false;
+        if (!is_array($data) && !empty($data)) {
+            $merge = !in_array($data, self::$data);
+            if ($merge) {
+                self::$data[] = $data;
+            }
+        }
+        self::loadEndpointsFromConfig($data, $merge);
         self::validateUri($uri);
     }
 
-    private static function loadEndpointsFromConfig($data)
+    private static function loadEndpointsFromConfig($data, bool $merge)
+    : void
     {
-        if (empty(self::$endpoints)) {
+        if (empty(self::$endpoints) || $merge) {
             if (is_array($data)) {
-                self::$endpoints = $data;
+                if ($merge) {
+                    self::$endpoints = array_merge($data, self::$endpoints);
+                }
+                else {
+                    self::$endpoints = $data;
+                }
             }
             else if (file_exists($data)) {
-                self::$endpoints = json_decode(file_get_contents($data), true);
+                if ($merge) {
+                    self::$endpoints = array_merge(
+                        json_decode(file_get_contents($data), true),
+                        self::$endpoints
+                    );
+                }
+                else {
+                    self::$endpoints = json_decode(file_get_contents($data), true);
+                }
             }
         }
     }
