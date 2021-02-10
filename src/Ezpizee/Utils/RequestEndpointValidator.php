@@ -12,6 +12,14 @@ final class RequestEndpointValidator
     {
     }
 
+    public static function reset()
+    : void
+    {
+        self::$endpoints = [];
+        self::$uriParams = [];
+        self::$contextProcessorNamespace = '';
+    }
+
     public static function validate(string $uri, $data = null)
     : void
     {
@@ -19,7 +27,7 @@ final class RequestEndpointValidator
         self::validateUri($uri);
     }
 
-    protected static function loadEndpointsFromConfig($data)
+    private static function loadEndpointsFromConfig($data)
     {
         if (empty(self::$endpoints)) {
             if (is_array($data)) {
@@ -31,7 +39,7 @@ final class RequestEndpointValidator
         }
     }
 
-    protected static function validateUri(string $uri)
+    private static function validateUri(string $uri)
     : bool
     {
         foreach (self::$endpoints as $endpoint => $cp) {
