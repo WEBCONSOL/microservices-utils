@@ -134,6 +134,15 @@ final class RequestBodyValidator
     public static function validateBoolean(ListModel $field, $v)
     : void
     {
+        if ($v === 'true' || $v === 'false') {
+            $v = (bool) $v;
+        }
+        else if ($v === '1' || $v === 1) {
+            $v = true;
+        }
+        else if ($v === '0' || $v === 0) {
+            $v = false;
+        }
         if ($v !== 'true' && $v !== true && $v !== 'false' && $v !== false) {
             self::throwError($field);
         }
