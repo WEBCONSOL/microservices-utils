@@ -88,6 +88,7 @@ final class RequestBodyValidator
         if (defined('DEBUG') && DEBUG) {
             CustomResponse::setDebugInfo($field->getAsArray());
         }
+        Logger::debug($field);
         throw new RuntimeException(ResponseCodes::MESSAGE_ERROR_INVALID_FIELD, ResponseCodes::CODE_ERROR_INVALID_FIELD);
     }
 
