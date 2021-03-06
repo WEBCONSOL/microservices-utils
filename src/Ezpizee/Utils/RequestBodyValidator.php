@@ -17,6 +17,10 @@ final class RequestBodyValidator
             if (is_array($v)||is_object($v)) {$v=json_encode($v);}
             self::validateString($field, $v);
         }
+        else if ($field->is('type', 'json')) {
+            if (is_array($v)||is_object($v)) {$v=json_encode($v);}
+            self::validateJSON($field, $v);
+        }
         else if ($field->is('type', 'number')) {
             if (is_array($v)||is_object($v)) {$v=json_encode($v);}
             self::validateNumber($field, $v);
@@ -81,7 +85,7 @@ final class RequestBodyValidator
     public static function throwError(ListModel $field)
     : void
     {
-        if (DEBUG) {
+        if (defined('DEBUG') && DEBUG) {
             CustomResponse::setDebugInfo($field->getAsArray());
         }
         throw new RuntimeException(ResponseCodes::MESSAGE_ERROR_INVALID_FIELD, ResponseCodes::CODE_ERROR_INVALID_FIELD);
@@ -115,6 +119,14 @@ final class RequestBodyValidator
             else {
                 self::throwError($field);
             }
+        }
+    }
+
+    public static function validateJSON(ListModel $field, string $v)
+    : void
+    {
+        if (!EncodingUtil::isValidJSON($v)) {
+            self::throwError($field);
         }
     }
 
