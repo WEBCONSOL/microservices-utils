@@ -52,7 +52,7 @@ class Request
             $this->loadRequestDataFromSlimRequest();
         }
         else if ($this->method() === "POST") {
-             if ((is_array($_POST) && !empty($_POST)) || (isset($_FILES) && is_array($_FILES) && !empty($_FILES))) {
+            if ((is_array($_POST) && !empty($_POST)) || (isset($_FILES) && is_array($_FILES) && !empty($_FILES))) {
                 if (is_array($_POST) && !empty($_POST)) {
                     $this->requestData = $_POST;
                 }
@@ -127,7 +127,18 @@ class Request
             $v = $this->slimRequest->getHeaderLine($param);
         }
         if (empty($v)) {
-            $v = isset(self::$data['header'][$param]) ? self::$data['header'][$param] : $default;
+            if (isset(self::$data['header'][$param])) {
+                $v = self::$data['header'][$param];
+            }
+            else if (isset(self::$data['header'][strtoupper($param)])) {
+                $v = self::$data['header'][strtoupper($param)];
+            }
+            else if (isset(self::$data['header'][strtolower($param)])) {
+                $v = self::$data['header'][strtolower($param)];
+            }
+            else {
+                $v = $default;
+            }
         }
         return $v || strlen($v) ? $v : $default;
     }

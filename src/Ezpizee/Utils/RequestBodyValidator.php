@@ -14,18 +14,22 @@ final class RequestBodyValidator
     : void
     {
         if ($field->is('type', 'string')) {
+            if (is_array($v)||is_object($v)) {$v=json_encode($v);}
             self::validateString($field, $v);
         }
         else if ($field->is('type', 'number')) {
+            if (is_array($v)||is_object($v)) {$v=json_encode($v);}
             self::validateNumber($field, $v);
         }
         else if ($field->is('type', 'boolean')) {
             self::validateBoolean($field, $v);
         }
         else if ($field->is('type', 'email')) {
+            if (is_array($v)||is_object($v)) {$v=json_encode($v);}
             self::validateEmail($field, $v);
         }
         else if ($field->is('type', 'url')) {
+            if (is_array($v)||is_object($v)) {$v=json_encode($v);}
             self::validateURL($field, $v);
         }
         else if ($field->is('type', 'array')) {
