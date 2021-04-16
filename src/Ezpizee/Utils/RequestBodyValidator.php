@@ -42,17 +42,26 @@ final class RequestBodyValidator
         else if ($field->is('type', 'file')) {
             self::validateFile($field);
         }
-        else if ($field->is('type', 'password')) {
-            Password::isValid($v);
-        }
         else if ($field->is('type', 'mixed')) {
             self::validateMixed($field, $v);
         }
         else if ($field->is('type', 'client_credential')) {
             self::validateClientCredentials($field, $v);
         }
+        else if ($field->is('type', 'password')) {
+            if (!Password::isValid($v)) {
+                self::throwError($field);
+            }
+        }
         else if ($field->is('type', 'sku')) {
-            SKU::isValid($v);
+            if (!SKU::isValid($v)) {
+                self::throwError($field);
+            }
+        }
+        else if ($field->is('type', 'uuid')) {
+            if (!UUID::isValid($v)) {
+                self::throwError($field);
+            }
         }
     }
 
