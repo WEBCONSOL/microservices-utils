@@ -73,7 +73,7 @@ final class RequestEndpointValidator
     public static function getUriParam(string $key)
     : string
     {
-        return isset(self::$uriParams[$key]) ? self::$uriParams[$key] : "";
+        return isset(self::$uriParams[$key]) ? StringUtil::removeWhitespace(strip_tags(self::$uriParams[$key])) : "";
     }
 
     public static function getEndpointsConfigData()
