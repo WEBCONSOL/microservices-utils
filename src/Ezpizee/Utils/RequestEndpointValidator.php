@@ -8,12 +8,14 @@ final class RequestEndpointValidator
     private static $uriParams = [];
     private static $contextProcessorNamespace = '';
     private static $data = [];
+    private static $method = '';
 
     private function __construct() {}
 
-    public static function validate(string $uri, $data = null)
+    public static function validate(string $uri, $data = null, $method = 'GET')
     : void
     {
+        self::$method = $method;
         $merge = false;
         if (!is_array($data) && !empty($data)) {
             $merge = !in_array($data, self::$data);
@@ -55,7 +57,15 @@ final class RequestEndpointValidator
     : bool
     {
         foreach (self::$endpoints as $endpoint => $cp) {
-            if (PathUtil::isUriMatch($endpoint, $uri)) {
+            if (!is_string($cp)) {
+                if (self::$method === null) {
+                    $cp = 'EzpzDummyCP';
+                }
+                else {
+                    $cp = isset($cp[self::$method]) ? $cp[self::$method] : null;
+                }
+            }
+            if (PathUtil::isUriMatch($endpoint, $uri) && $cp) {
                 self::$contextProcessorNamespace = $cp . '\\ContextProcessor';
                 self::$uriParams = PathUtil::getUriArgs($endpoint, $uri);
                 return true;
