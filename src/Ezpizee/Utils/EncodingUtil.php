@@ -36,4 +36,18 @@ final class EncodingUtil
     {
         return preg_match(self::$UUID_V4_REGEX, $id) === 1;
     }
+
+    public static function jsonDecode(array &$arr)
+    : void
+    {
+        foreach ($arr as $i=>$v) {
+            if (is_array($v)) {
+                self::jsonDecode($arr[$i]);
+            }
+            else if (!is_numeric($v) && EncodingUtil::isValidJSON($v)) {
+                $arr[$i] = json_decode($v, true);
+                self::jsonDecode($arr[$i]);
+            }
+        }
+    }
 }

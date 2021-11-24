@@ -9,6 +9,8 @@ class Request
     private $isAjax = false;
     private $isFormSubmission = false;
     private $files = [];
+    private $schema_http = "http://";
+    private $schema_https = "https://";
 
     /**
      * @var \Slim\Http\Request
@@ -20,9 +22,10 @@ class Request
         if (isset($opts['request'])) {
             $this->setSlimRequest($opts['request']);
         }
+        $this->cloudflareSSL();
         $this->isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest' : false;
         self::$data['method'] = strtoupper($_SERVER["REQUEST_METHOD"]);
-        self::$data['isHttps'] = (int)$_SERVER['SERVER_PORT'] === 443 || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === "https") || isset($_SERVER['HTTP_X_FORWARDED_SSL']) || isset($_SERVER['HTTPS']) ? true : false;
+        self::$data['isHttps'] = (int)$_SERVER['SERVER_PORT'] === 443 || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === "https") || isset($_SERVER['HTTP_X_FORWARDED_SSL']) || isset($_SERVER['HTTPS']);
         self::$data['pathInfo'] = new PathInfo($_SERVER["REQUEST_URI"]);
         self::$data['referer'] = isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : "";
         $this->checkIfTheRequestIsFormSubmission();
@@ -184,6 +187,8 @@ class Request
         }
     }
 
+    public function originHost(): string {return $this->getHeaderParam('Origin');}
+
     public static function isTheSameOrigin(string $referer = '')
     : bool
     {
@@ -206,6 +211,12 @@ class Request
         }
         return self::$data['host'];
     }
+
+    public function protocol() {return $this->isHttps() ? $this->schema_https : $this->schema_http;}
+
+    public function getUrl(): string {return $this->protocol() . $this->host() . '/' . ltrim($this->uri(), '/');}
+
+    public function host(): string {return self::getHost();}
 
     public function setSlimRequest($request)
     {
@@ -282,23 +293,11 @@ class Request
         return $this->method() === 'POST' && $this->isFormSubmission;
     }
 
-    public function isHttps()
-    : bool
-    {
-        return self::$data['isHttps'];
-    }
+    public function isHttps(): bool {return self::$data['isHttps'];}
 
-    public function httpsSchema()
-    : string
-    {
-        return 'https://';
-    }
+    public function httpsSchema(): string {return $this->schema_https;}
 
-    public function httpSchema()
-    : string
-    {
-        return 'http://';
-    }
+    public function httpSchema(): string {return $this->schema_http;}
 
     public function getRequestParamAsArray($param, $default = [])
     : array
@@ -357,35 +356,21 @@ class Request
         return is_array($this->requestData) ? $this->requestData : [];
     }
 
-    public function isPOST()
-    : bool
-    {
-        return $this->method() === 'POST';
-    }
+    public function isPOST(): bool {return $this->method() === 'POST';}
 
-    public function isGET()
-    : bool
-    {
-        return $this->method() === 'GET';
-    }
+    public function isGET(): bool {return $this->method() === 'GET';}
 
-    public function isDELETE()
-    : bool
-    {
-        return $this->method() === 'DELETE';
-    }
+    public function isDELETE(): bool {return $this->method() === 'DELETE';}
 
-    public function isPUT()
-    : bool
-    {
-        return $this->method() === 'PUT';
-    }
+    public function isPUT(): bool {return $this->method() === 'PUT';}
 
     public function pathInfo()
     : PathInfo
     {
         return self::$data['pathInfo'];
     }
+
+    public function uri() {return self::pathInfo()->getUri();}
 
     public function getHeaderCookies():
     array
@@ -470,5 +455,15 @@ class Request
             $ip = $_SERVER['REMOTE_ADDR'];
         }
         return $ip;
+    }
+
+    private function cloudflareSSL() {
+        if (isset($_SERVER['HTTP_CF_VISITOR'])) {
+            if (preg_match('/https/i', $_SERVER['HTTP_CF_VISITOR'])) {
+                $_SERVER['HTTPS'] = 'On';
+                $_SERVER['HTTP_X_FORWARDED_PORT'] = 443;
+                $_SERVER['SERVER_PORT'] = 443;
+            }
+        }
     }
 }
