@@ -424,6 +424,14 @@ class Request
         }
     }
 
+    public function getReferredUri(): string {
+        if (self::hasReferer()) {
+            $arr = explode('/', self::getReferredHost());
+            return $arr[sizeof($arr)-1];
+        }
+        return '';
+    }
+
     public function getReferredHost(): string {
         if (self::hasReferer()) {
             $arr = explode('/', self::getReferer());
