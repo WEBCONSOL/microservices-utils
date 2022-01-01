@@ -424,6 +424,24 @@ class Request
         }
     }
 
+    public function getReferredUri(): string {
+        if (self::hasReferer()) {
+            $arr = explode('/', self::getReferredHost());
+            return $arr[sizeof($arr)-1];
+        }
+        return '';
+    }
+
+    public function getReferredHost(): string {
+        if (self::hasReferer()) {
+            $arr = explode('/', self::getReferer());
+            return isset($arr[2]) ? $arr[2] : '';
+        }
+        return '';
+    }
+
+    public function getReferer(): string {return self::hasReferer() ? self::$data['referer'] : '';}
+
     public function hasReferer(): bool {return !empty(self::$data['referer']);}
 
     public function getUserInfoAsUniqueId(): string {
