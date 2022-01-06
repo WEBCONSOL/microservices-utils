@@ -10,6 +10,7 @@ class Constants
     const HEADER_CONTENT_TYPE_VALUE_MULTIPARTS = "multipart/form-data";
     const HEADER_ACCESS_TOKEN = "Access-Token";
     const HEADER_APP_NAME = "App-Name";
+    const HEADER_APP_NAME_VALUE = "Ezpizee Ecosystem";
     const HEADER_STORE_ID = "Store-ID";
     const HEADER_AUTHORIZATION = "Authorization";
     const HEADER_SESSION_ID = "Session-Id";
