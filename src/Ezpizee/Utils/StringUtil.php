@@ -7,6 +7,13 @@ use stdClass;
 
 final class StringUtil
 {
+    public static function getHost(string $url)
+    : string
+    {
+        $arr = explode('/', str_replace(['https://', 'http://'], '', $url));
+        return isset($arr[0]) && !empty($arr[0]) ? $arr[0] : '';
+    }
+
     public static function endsWith($haystack, $needle)
     : bool
     {
