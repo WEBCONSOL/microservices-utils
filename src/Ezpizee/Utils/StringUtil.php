@@ -7,6 +7,34 @@ use stdClass;
 
 final class StringUtil
 {
+    public static function parsedUrl(string $url)
+    : array
+    {
+        $output = ['schema'=>'','host'=>'','path'=>'','query_string'=>''];
+        if (!empty($url)) {
+            $arr = explode('?', $url);
+            $output['query_string'] = isset($arr[1]) ? $arr[1] : '';
+            $output['schema'] = self::getSchema($url);
+            $output['host'] = self::getHost($url);
+            $output['path'] = str_replace([
+                $output['schema'].$output['host'], '?'.$output['query_string']
+            ], '', $url);
+        }
+        return $output;
+    }
+
+    public static function getSchema(string $url)
+    : string
+    {
+        if (StringUtil::startsWith($url, 'https://')) {
+            return 'https://';
+        }
+        if (StringUtil::startsWith($url, 'http://')) {
+            return 'http://';
+        }
+        return '';
+    }
+
     public static function getHost(string $url)
     : string
     {
