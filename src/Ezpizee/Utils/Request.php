@@ -218,6 +218,11 @@ class Request
 
     public function host(): string {return self::getHost();}
 
+    public function hostOnly(): string {
+        $arr = explode(':', $this->host());
+        return $arr[0];
+    }
+
     public function setSlimRequest($request)
     {
         if (class_exists('\Slim\Http\Request', false)) {
