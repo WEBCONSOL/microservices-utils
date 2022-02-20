@@ -8,6 +8,15 @@ class Session {
 
     public function __construct(int $expireDays=365) {
         if (!isset($_SESSION)) {
+            if (defined('SESSION_DIR')) {
+                session_save_path(SESSION_DIR);
+            }
+            else if (defined('TMP_DIR')) {
+                session_save_path(TMP_DIR);
+            }
+            else if (defined('ROOT_DIR')) {
+                session_save_path(ROOT_DIR.DIRECTORY_SEPARATOR.'tmp');
+            }
             session_start();
         }
         $this->cookieTime = strtotime('+'.$expireDays.' days');
