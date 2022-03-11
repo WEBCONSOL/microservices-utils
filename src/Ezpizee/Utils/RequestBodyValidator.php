@@ -232,16 +232,20 @@ final class RequestBodyValidator
                     $j = 0;
                     $element = null;
                     $found = [];
+                    $errorFields = [];
                     foreach ($elements as $i => $element) {
                         if (is_array($element) && isset($element['name']) && isset($v[$element['name']])) {
                             $n++;
                             $found[] = $element;
                             self::validate(new ListModel($element), $v[$element['name']]);
                         }
+                        else {
+                            $errorFields[] = new ListModel([$field->get('name')=>$element]);
+                        }
                         $j++;
                     }
                     if ($n !== $j) {
-                        $field = new ListModel(['field'=>$field->getAsArray(), 'value'=>$v, 'n'=>$n, 'j'=>$j, 'element'=>$element, 'found'=>$found]);
+                        $field = new ListModel(['field'=>$errorFields, 'value'=>$v, 'n'=>$n, 'j'=>$j, 'element'=>$element, 'found'=>$found]);
                         self::throwError($field);
                     }
                 }
