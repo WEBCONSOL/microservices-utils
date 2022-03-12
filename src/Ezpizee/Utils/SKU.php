@@ -6,38 +6,66 @@ class SKU
 {
     private static $PFX = 'SKU';
 
-    public static function setPFX(string $pfx): void {self::$PFX = $pfx;}
+    public final static function setPFX(string $pfx): void {self::$PFX = $pfx;}
 
-    public static function getPFX(): string {return self::$PFX;}
+    public final static function getPFX(): string {return self::$PFX;}
 
-    public static function gen(string $productTypeId)
+    public final static function gen(string $productTypeId)
     : string
     {
-        return self::getPFX() . '-' . date('Y') . '-' . $productTypeId . '-' . strtoupper(uniqid());
+        return self::getPFX() . '-' . date('Y') . '-' . $productTypeId . '-' . strtolower(uniqid());
     }
 
-    public static function isValid(string $sku)
+    public final static function isValid(string $sku)
     : bool
     {
-        if (strlen($sku) >= 26 && strlen($sku) <= 36) {
-            $exp = explode('-', $sku);
-            if (isset($exp[0]) && $exp[0] === self::getPFX()) {
-                if (isset($exp[1]) && strlen($exp[1]) === 4) {
-                    if (isset($exp[2]) && is_numeric($exp[2]) && strlen($exp[2]) < 12) {
-                        if (isset($exp[3]) && strlen($exp[3]) === 13) {
-                            return true;
-                        }
-                    }
-                }
-            }
+        $exp = explode('-', $sku);
+        if (sizeof($exp) >= 4 && $exp[0] === self::getPFX() && is_numeric($exp[1]) && strlen($exp[1]) === 4) {
+            $lastBit = $exp[sizeof($exp)-1];
+            $productTypeId = str_replace([$exp[0].'-'.$exp[1].'-', '-'.$lastBit], '', $sku);
+            return EncodingUtil::isValidUUID($productTypeId) && strlen($lastBit) === 13;
         }
         return false;
     }
 
-    public static function getProductType(string $sku)
+    public final static function parse(string $sku)
+    : array
+    {
+        $parsed = [
+            'pfx' => self::getPFX(),
+            'year' => 0,
+            'productTypeId' => '',
+            'uniqid' => ''
+        ];
+        if (self::isValid($sku)) {
+            $exp = explode('-', $sku);
+            $lastBit = $exp[sizeof($exp)-1];
+            $parsed['pfx'] = $exp[0];
+            $parsed['year'] = (int)$exp[1];
+            $parsed['productTypeId'] = str_replace([$exp[0].'-'.$exp[1].'-', '-'.$lastBit], '', $sku);
+            $parsed['uniqid'] = $lastBit;
+        }
+        return $parsed;
+    }
+
+    public final static function getYear(string $sku)
     : int
     {
-        $exp = explode('-', $sku);
-        return (int)(isset($exp[2]) ? $exp[2] : '0');
+        $parsed = self::parse($sku);
+        return (int)$parsed['year'];
+    }
+
+    public final static function getProductType(string $sku)
+    : string
+    {
+        $parsed = self::parse($sku);
+        return $parsed['productTypeId'];
+    }
+
+    public final static function getUniqid(string $sku)
+    : string
+    {
+        $parsed = self::parse($sku);
+        return $parsed['uniqid'];
     }
 }
