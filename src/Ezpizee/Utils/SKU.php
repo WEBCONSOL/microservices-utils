@@ -4,9 +4,7 @@ namespace Ezpizee\Utils;
 
 class SKU
 {
-    private static $PFX = 'SKU';
-
-    public final static function setPFX(string $pfx): void {self::$PFX = $pfx;}
+    protected static $PFX = 'SKU';
 
     public final static function getPFX(): string {return self::$PFX;}
 
