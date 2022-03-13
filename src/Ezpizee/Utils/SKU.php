@@ -6,7 +6,10 @@ class SKU
 {
     protected static $PFX = 'SKU';
 
-    public final static function getPFX(): string {return self::$PFX;}
+    public final static function getPFX(): string {
+        $max = strlen(self::$PFX);
+        return substr(self::$PFX, 0, $max > 5 ? 5 : $max);
+    }
 
     public final static function gen(string $productTypeId)
     : string
