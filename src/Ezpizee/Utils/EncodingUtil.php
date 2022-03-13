@@ -36,22 +36,6 @@ final class EncodingUtil
     public static final function uuid()
     : string
     {
-        return self::alphanumericUUID();
-    }
-
-    private static function v4uuid()
-    : string
-    {
-        $data = random_bytes(16);
-        assert(strlen($data) == 16);
-        $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // set version to 0100
-        $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // set bits 6-7 to 10
-        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-    }
-
-    private static function alphanumericUUID()
-    : string
-    {
         $n1 = rand(0, self::$NUM_ALPHABETS);
         $n2 = rand(0, self::$NUM_NUMERICS);
         $n3 = rand(0, self::$NUM_ALPHABETS);
@@ -68,6 +52,16 @@ final class EncodingUtil
             self::$NUMERICS[$n4].self::$ALPHABETS[$n5].self::$NUMERICS[$n6].
             self::$ALPHABETS[$n7].self::$NUMERICS[$n8].self::$ALPHABETS[$n9].
             self::$NUMERICS[$n10].self::$ALPHABETS[$n11].self::$NUMERICS[$n12];
+    }
+
+    public static function v4uuid()
+    : string
+    {
+        $data = random_bytes(16);
+        assert(strlen($data) == 16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // set version to 0100
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // set bits 6-7 to 10
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
     public static final function isValidUUID(string $id)
