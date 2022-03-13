@@ -4,7 +4,6 @@ namespace Ezpizee\Utils;
 
 final class EncodingUtil
 {
-    private static $UUID_TYPE           = 'alphanumericUUID';
     private static $MD5_REGEX           = '/^[a-f0-9]{32}$/';
     private static $UUID_V4_REGEX1      = '/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i';
     private static $UUID_V4_REGEX1_2    = '/^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i';
@@ -37,7 +36,7 @@ final class EncodingUtil
     public static final function uuid()
     : string
     {
-        return self::$UUID_TYPE === 'alphanumericUUID' ? self::alphanumericUUID() : self::v4uuid();
+        return self::alphanumericUUID();
     }
 
     private static function v4uuid()
