@@ -36,6 +36,6 @@ final class Crypto
         if (empty($passPhrase)) {
             throw new RuntimeException(ResponseCodes::CODE_ERROR_INVALID_DATA, 'MISSING_ENCRYPTION_PASSPHRASE');
         }
-        return Crypto::decryptWithPassword($cipherText, $passPhrase);
+        return DefuseCrypto::decryptWithPassword($cipherText, $passPhrase);
     }
 }
