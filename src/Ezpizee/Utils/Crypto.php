@@ -28,7 +28,7 @@ final class Crypto
      * @param string $passPhrase
      * @return string
      */
-    public static function decrypt(string $cipherText, string $passPhrase=''): string
+    public static function decryptWithPassword(string $cipherText, string $passPhrase=''): string
     {
         if (empty($passPhrase) && defined('INTERNAL_DATA_ENCRYPTION_PHRASE')) {
             $passPhrase = INTERNAL_DATA_ENCRYPTION_PHRASE;
