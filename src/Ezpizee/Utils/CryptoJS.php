@@ -57,6 +57,6 @@ final class CryptoJS
             $key = substr($result, 0, 32);
             $data = openssl_decrypt($ct, 'aes-256-cbc', $key, true, $iv);
         }
-        return $data;
+        return empty($data) ? '' : $data;
     }
 }
