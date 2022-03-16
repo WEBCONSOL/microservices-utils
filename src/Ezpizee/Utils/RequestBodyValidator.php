@@ -118,13 +118,8 @@ final class RequestBodyValidator
     private static function validateAESEncryptedData(ListModel $field, string $v)
     : void
     {
-        if (defined('DATA_ENCRYPTION_PHRASE')) {
-            $decrypted = CryptoJS::decrypt($v, DATA_ENCRYPTION_PHRASE);
-            if (!strlen($decrypted)) {
-                self::throwError($field);
-            }
-        }
-        else {
+        $decrypted = CryptoJS::decrypt($v);
+        if (!strlen($decrypted)) {
             self::throwError($field);
         }
     }
