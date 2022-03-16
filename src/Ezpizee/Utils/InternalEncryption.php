@@ -5,7 +5,7 @@ namespace Ezpizee\Utils;
 use Defuse\Crypto\Crypto as DefuseCrypto;
 use RuntimeException;
 
-final class Crypto
+final class InternalEncryption
 {
     /**
      * @param string $plaintext
