@@ -2,6 +2,7 @@
 
 namespace Ezpizee\Utils;
 
+use Ezpizee\Utils\CryptoJS;
 use RuntimeException;
 
 final class RequestBodyValidator
@@ -63,6 +64,9 @@ final class RequestBodyValidator
                 self::throwError($field);
             }
         }
+        else if ($field->is('type', 'aes_encrypted')) {
+            self::validateAESEncryptedData($field, $v);
+        }
     }
 
     public static function validateString(ListModel $field, string $v)
@@ -109,6 +113,20 @@ final class RequestBodyValidator
             return $num >= $minMax[0] && $num <= $minMax[1];
         }
         return $num >= $size;
+    }
+
+    private static function validateAESEncryptedData(ListModel $field, string $v)
+    : void
+    {
+        if (defined('DATA_ENCRYPTION_PHRASE')) {
+            $decrypted = CryptoJS::decrypt($v, DATA_ENCRYPTION_PHRASE);
+            if (!strlen($decrypted)) {
+                self::throwError($field);
+            }
+        }
+        else {
+            self::throwError($field);
+        }
     }
 
     public static function validateNumber(ListModel $field, string $v)
