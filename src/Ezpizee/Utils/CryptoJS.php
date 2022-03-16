@@ -2,10 +2,18 @@
 
 namespace Ezpizee\Utils;
 
+use RuntimeException;
+
 final class CryptoJS
 {
-    public static function encrypt(string $plaintext, string $passPhrase, bool $toBase64=false): string
+    public static function encrypt(string $plaintext, string $passPhrase='', bool $toBase64=false): string
     {
+        if (empty($passPhrase) && defined('DATA_ENCRYPTION_PHRASE')) {
+            $passPhrase = DATA_ENCRYPTION_PHRASE;
+        }
+        if (empty($passPhrase)) {
+            throw new RuntimeException(ResponseCodes::CODE_ERROR_INVALID_DATA, 'MISSING_ENCRYPTION_PASSPHRASE');
+        }
         $salt = openssl_random_pseudo_bytes(8);
         $salted = '';
         $dx = '';
@@ -20,8 +28,14 @@ final class CryptoJS
         return $toBase64 ? base64_encode(json_encode($data)) : json_encode($data);
     }
 
-    public static function decrypt(string $cipherText, string $passPhrase): string
+    public static function decrypt(string $cipherText, string $passPhrase=''): string
     {
+        if (empty($passPhrase) && defined('DATA_ENCRYPTION_PHRASE')) {
+            $passPhrase = DATA_ENCRYPTION_PHRASE;
+        }
+        if (empty($passPhrase)) {
+            throw new RuntimeException(ResponseCodes::CODE_ERROR_INVALID_DATA, 'MISSING_ENCRYPTION_PASSPHRASE');
+        }
         $data = null;
         if (EncodingUtil::isBase64Encoded($cipherText)) {
             $cipherText = base64_decode($cipherText);
