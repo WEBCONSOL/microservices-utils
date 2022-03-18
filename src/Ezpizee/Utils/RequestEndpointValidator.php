@@ -2,6 +2,9 @@
 
 namespace Ezpizee\Utils;
 
+use FastRoute\Dispatcher;
+use RuntimeException;
+
 final class RequestEndpointValidator
 {
     private static $endpoints = [];
@@ -56,7 +59,32 @@ final class RequestEndpointValidator
     private static function validateUri(string $uri)
     : bool
     {
-        foreach (self::$endpoints as $endpoint => $cp) {
+        $dispatcher = \FastRoute\simpleDispatcher(function(\FastRoute\RouteCollector $r) {
+            foreach (self::$endpoints as $endpoint => $cp) {
+                if (is_string($cp)) {
+                    $r->addRoute(self::$method, $endpoint, $cp);
+                }
+                else if (is_array($cp) && isset($cp[self::$method])) {
+                    $r->addRoute(self::$method, $endpoint, $cp[self::$method]);
+                }
+            }
+        });
+
+        // Fetch method and URI from somewhere
+        $routeInfo = $dispatcher->dispatch(self::$method, $uri);
+        switch ($routeInfo[0]) {
+            case Dispatcher::NOT_FOUND:
+                throw new RuntimeException(ResponseCodes::MESSAGE_ERROR_ITEM_NOT_FOUND, 404);
+            case Dispatcher::METHOD_NOT_ALLOWED:
+                throw new RuntimeException(ResponseCodes::MESSAGE_ERROR_METHOD_NOT_ALLOWED,
+                    ResponseCodes::CODE_METHOD_NOT_ALLOWED);
+            case Dispatcher::FOUND:
+                self::$contextProcessorNamespace = $routeInfo[1] . '\\ContextProcessor';
+                self::$uriParams = $routeInfo[2];
+                return true;
+        }
+        return false;
+        /*foreach (self::$endpoints as $endpoint => $cp) {
             if (!is_string($cp)) {
                 if (self::$method === null) {
                     $cp = 'EzpzDummyCP';
@@ -71,7 +99,7 @@ final class RequestEndpointValidator
                 return true;
             }
         }
-        return false;
+        return false;*/
     }
 
     public static function getContextProcessorNamespace()
