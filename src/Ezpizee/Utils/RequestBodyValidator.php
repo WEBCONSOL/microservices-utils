@@ -2,7 +2,7 @@
 
 namespace Ezpizee\Utils;
 
-use Ezpizee\Utils\CryptoJS;
+use Ezpizee\Utils\Encryption\Encryptor;
 use RuntimeException;
 
 final class RequestBodyValidator
@@ -118,7 +118,7 @@ final class RequestBodyValidator
     private static function validateAESEncryptedData(ListModel $field, string $v)
     : void
     {
-        $decrypted = CryptoJS::decrypt($v);
+        $decrypted = (new Encryptor())->cryptoPHPJS()->decrypt($v);
         if (!strlen($decrypted)) {
             self::throwError($field);
         }
