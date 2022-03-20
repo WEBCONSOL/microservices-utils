@@ -1,8 +1,7 @@
 <?php
 
-namespace Ezpizee\Utils;
-
 use Defuse\Crypto\Crypto as DefuseCrypto;
+use Ezpizee\Utils\ResponseCodes;
 use RuntimeException;
 
 final class InternalEncryption
@@ -12,7 +11,7 @@ final class InternalEncryption
      * @param string $passPhrase
      * @return string
      */
-    public static function encryptWithPassword(string $plaintext, string $passPhrase=''): string
+    public function encrypt(string $plaintext, string $passPhrase=''): string
     {
         if (empty($passPhrase) && defined('INTERNAL_DATA_ENCRYPTION_PHRASE')) {
             $passPhrase = INTERNAL_DATA_ENCRYPTION_PHRASE;
@@ -28,7 +27,7 @@ final class InternalEncryption
      * @param string $passPhrase
      * @return string
      */
-    public static function decryptWithPassword(string $cipherText, string $passPhrase=''): string
+    public function decrypt(string $cipherText, string $passPhrase=''): string
     {
         if (empty($passPhrase) && defined('INTERNAL_DATA_ENCRYPTION_PHRASE')) {
             $passPhrase = INTERNAL_DATA_ENCRYPTION_PHRASE;

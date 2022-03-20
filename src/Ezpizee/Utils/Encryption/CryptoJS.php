@@ -1,12 +1,12 @@
 <?php
 
-namespace Ezpizee\Utils;
-
+use Ezpizee\Utils\EncodingUtil;
+use Ezpizee\Utils\ResponseCodes;
 use RuntimeException;
 
 final class CryptoJS
 {
-    public static function encrypt(string $plaintext, string $passPhrase='', bool $toBase64=false): string
+    public function encrypt(string $plaintext, string $passPhrase='', bool $toBase64=false): string
     {
         if (empty($passPhrase) && defined('DATA_ENCRYPTION_PHRASE')) {
             $passPhrase = DATA_ENCRYPTION_PHRASE;
@@ -28,7 +28,7 @@ final class CryptoJS
         return $toBase64 ? base64_encode(json_encode($data)) : json_encode($data);
     }
 
-    public static function decrypt(string $cipherText, string $passPhrase=''): string
+    public function decrypt(string $cipherText, string $passPhrase=''): string
     {
         if (empty($passPhrase) && defined('DATA_ENCRYPTION_PHRASE')) {
             $passPhrase = DATA_ENCRYPTION_PHRASE;
