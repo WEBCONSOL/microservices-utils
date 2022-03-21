@@ -2,7 +2,6 @@
 
 use Ezpizee\Utils\EncodingUtil;
 use Ezpizee\Utils\ResponseCodes;
-use RuntimeException;
 
 final class CryptoJS
 {

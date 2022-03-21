@@ -2,7 +2,6 @@
 
 use Defuse\Crypto\Crypto as DefuseCrypto;
 use Ezpizee\Utils\ResponseCodes;
-use RuntimeException;
 
 final class InternalEncryption
 {
