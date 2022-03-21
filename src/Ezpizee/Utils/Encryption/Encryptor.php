@@ -17,7 +17,9 @@ class Encryptor
     public function internal(): InternalEncryption
     {
         if ($this->internalEncryption === null) {
-            include __DIR__.DIRECTORY_SEPARATOR.'InternalEncryption.php';
+            if (!class_exists('InternalEncryption')) {
+                include __DIR__.DIRECTORY_SEPARATOR.'InternalEncryption.php';
+            }
             $this->internalEncryption = new InternalEncryption();
         }
         return $this->internalEncryption;
@@ -26,7 +28,9 @@ class Encryptor
     public function cryptoPHPJS(): CryptoJS
     {
         if ($this->cryptoPHPJS === null) {
-            include __DIR__.DIRECTORY_SEPARATOR.'CryptoJS.php';
+            if (!class_exists('CryptoJS')) {
+                include __DIR__.DIRECTORY_SEPARATOR.'CryptoJS.php';
+            }
             $this->cryptoPHPJS = new CryptoJS();
         }
         return $this->cryptoPHPJS;
