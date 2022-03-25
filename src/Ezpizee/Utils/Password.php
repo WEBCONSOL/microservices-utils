@@ -6,12 +6,9 @@ use RuntimeException;
 
 class Password
 {
-    private function __construct()
-    {
-    }
+    private function __construct(){}
 
-    public static final function encrypt(string $pwd)
-    : string
+    public static final function encrypt(string $pwd): string
     {
         if ($pwd) {
             return password_hash($pwd, PASSWORD_BCRYPT);
@@ -21,8 +18,7 @@ class Password
         }
     }
 
-    public static final function verify(string $pwd, string $hashedPwd)
-    : bool
+    public static final function verify(string $pwd, string $hashedPwd): bool
     {
         if ($pwd && $hashedPwd) {
             return password_verify($pwd, $hashedPwd);
@@ -30,6 +26,20 @@ class Password
         else {
             throw new RuntimeException('Password and hashed password cannot be blank.');
         }
+    }
+
+    public static function random(): string
+    {
+        $passwod = EncodingUtil::uuid(12);
+        $rand = rand(0, sizeof(Constants::ALPHABETS)-1);
+        $c1 = strtoupper(Constants::ALPHABETS[$rand]);
+        $rand = rand(0, sizeof(Constants::ALPHABETS)-1);
+        $c2 = strtolower(Constants::ALPHABETS[$rand]);
+        $rand1 = rand(0, strlen($passwod)-1);
+        $rand2 = rand(0, strlen($passwod)-1);
+        $passwod[$rand1] = $c1;
+        $passwod[$rand2] = $c2;
+        return $passwod;
     }
 
     /**
@@ -45,8 +55,7 @@ class Password
      *
      * @return bool
      */
-    public static function isValid($password)
-    : bool
+    public static function isValid($password): bool
     {
         // check upper case existence
         $uppercase = preg_match("/[A-Z]/", $password);
