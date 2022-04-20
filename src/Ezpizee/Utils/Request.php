@@ -2,19 +2,18 @@
 
 namespace Ezpizee\Utils;
 
+use Slim\Http\Request as SlimRequest;
+
 class Request
 {
     protected static $data;
-    private $requestData = [];
-    private $isAjax = false;
-    private $isFormSubmission = false;
-    private $files = [];
-    private $schema_http = "http://";
-    private $schema_https = "https://";
-
-    /**
-     * @var \Slim\Http\Request
-     */
+    private array $requestData = [];
+    private bool $isAjax = false;
+    private bool $isFormSubmission = false;
+    private array $files = [];
+    private string $schema_http = "http://";
+    private string $schema_https = "https://";
+    /** @var SlimRequest $slimRequest */
     private $slimRequest;
 
     public function __construct(array $opts = array())
@@ -414,13 +413,11 @@ class Request
     : void
     {
         if (empty($this->requestData) && !empty($this->slimRequest)) {
-            if ($this->slimRequest instanceof \Slim\Http\Request) {
+            if ($this->slimRequest instanceof SlimRequest) {
+                $body = $this->slimRequest->getParsedBody();
+                $this->requestData = !empty($body) ? $body : [];
                 if ($this->slimRequest->getMediaType() === Constants::HEADER_CONTENT_TYPE_VALUE_MULTIPARTS) {
-                    $this->requestData = $this->slimRequest->getParsedBody();
                     $this->files = !empty($_FILES) ? $_FILES : [];
-                }
-                else {
-                    $this->requestData = $this->slimRequest->getParsedBody();
                 }
                 if (empty($this->requestData)) {
                     $data = $this->slimRequest->getBody()->getContents();
