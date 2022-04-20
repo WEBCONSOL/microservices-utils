@@ -122,28 +122,25 @@ class Request
         return [];
     }
 
-    public function getHeaderParam($param, $default = '')
+    public function getHeaderParam(string $param, $default = '')
     : string
     {
-        $v = $default;
-        if (!empty($this->slimRequest)) {
+        if (isset(self::$data['header'][$param])) {
+            $v = self::$data['header'][$param];
+        }
+        else if (isset(self::$data['header'][strtoupper($param)])) {
+            $v = self::$data['header'][strtoupper($param)];
+        }
+        else if (isset(self::$data['header'][strtolower($param)])) {
+            $v = self::$data['header'][strtolower($param)];
+        }
+        else if (!empty($this->slimRequest)) {
             $v = $this->slimRequest->getHeaderLine($param);
         }
-        if (empty($v)) {
-            if (isset(self::$data['header'][$param])) {
-                $v = self::$data['header'][$param];
-            }
-            else if (isset(self::$data['header'][strtoupper($param)])) {
-                $v = self::$data['header'][strtoupper($param)];
-            }
-            else if (isset(self::$data['header'][strtolower($param)])) {
-                $v = self::$data['header'][strtolower($param)];
-            }
-            else {
-                $v = $default;
-            }
+        else {
+            $v = $default;
         }
-        return $v || strlen($v) ? $v : $default;
+        return $v;
     }
 
     public function method()
@@ -232,13 +229,13 @@ class Request
         }
     }
 
-    public function setRequestParam($key, $val)
+    public function setRequestParam(string $key, $val)
     : void
     {
         $this->requestData[$key] = $val;
     }
 
-    public function removeRequestParam($key)
+    public function removeRequestParam(string $key)
     : void
     {
         if (isset($this->requestData[$key])) {
@@ -246,7 +243,7 @@ class Request
         }
     }
 
-    public function hasRequestParam($param)
+    public function hasRequestParam(string $param)
     : bool
     {
         return isset($this->requestData[$param]) ||
@@ -255,16 +252,25 @@ class Request
             );
     }
 
-    public function hasHeaderParam($param)
+    public function hasHeaderParam(string $param)
     : bool
     {
-        if (!empty($this->slimRequest)) {
+        if (isset(self::$data['header'][$param])) {
+            return true;
+        }
+        else if (isset(self::$data['header'][strtoupper($param)])) {
+            return true;
+        }
+        else if (isset(self::$data['header'][strtolower($param)])) {
+            return true;
+        }
+        else if (!empty($this->slimRequest)) {
             return $this->slimRequest->hasHeader($param);
         }
-        else {
-            return isset(self::$data['header'][$param]);
-        }
+        return false;
     }
+
+    public function setHeaderParam(string $param, string $value): void {self::$data['header'][$param] = $value;}
 
     public function getBearerToken()
     : string

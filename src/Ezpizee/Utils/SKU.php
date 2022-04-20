@@ -22,10 +22,10 @@ class SKU
     : bool
     {
         $exp = explode('-', $sku);
-        if (sizeof($exp) >= 4 && $exp[0] === self::getPFX() && is_numeric($exp[1]) && strlen($exp[1]) === 4) {
+        if (sizeof($exp) >= 4 && is_numeric($exp[1]) && strlen($exp[1]) === 4) {
             $lastBit = $exp[sizeof($exp)-1];
             $productTypeId = str_replace([$exp[0].'-'.$exp[1].'-', '-'.$lastBit], '', $sku);
-            return EncodingUtil::isValidUUID($productTypeId) && strlen($lastBit) >= 12;
+            return EncodingUtil::isValidUUID($productTypeId) && EncodingUtil::isValidUUID($lastBit) && strlen($lastBit) >= 12;
         }
         return false;
     }
