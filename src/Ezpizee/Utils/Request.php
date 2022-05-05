@@ -64,26 +64,7 @@ class Request
                 $this->isFormSubmission = true;
             }
             else {
-                $requestBody = file_get_contents("php://input");
-                if ($requestBody) {
-                    if (EncodingUtil::isValidJSON($requestBody)) {
-                        $this->requestData = json_decode($requestBody, true);
-                    }
-                    else {
-                        parse_str($requestBody, $this->requestData);
-                    }
-
-                    $arrKeys = array_keys($this->requestData);
-
-                    if (isset($arrKeys[0]) && strpos($arrKeys[0], '------') !== false &&
-                        (strpos($arrKeys[0], 'Content-Disposition:_form-data;_name') !== false ||
-                            strpos($arrKeys[0], 'Content-Disposition:_attachment;_name') !== false)) {
-                        $this->requestData = array();
-                        $this->parseRawHttpRequest($this->requestData);
-                    }
-
-                    $this->isFormSubmission = true;
-                }
+                $this->processFormRequestBody();
             }
 
             if (!empty($_GET)) {
@@ -106,6 +87,30 @@ class Request
         }
         else if ($this->method() === 'GET') {
             $this->requestData = is_array($_GET) && !empty($_GET) ? $_GET : [];
+        }
+    }
+
+    private function processFormRequestBody(): void
+    {
+        $requestBody = file_get_contents("php://input");
+        if ($requestBody) {
+            if (EncodingUtil::isValidJSON($requestBody)) {
+                $this->requestData = json_decode($requestBody, true);
+            }
+            else {
+                parse_str($requestBody, $this->requestData);
+            }
+
+            $arrKeys = array_keys($this->requestData);
+
+            if (isset($arrKeys[0]) && strpos($arrKeys[0], '------') !== false &&
+                (strpos($arrKeys[0], 'Content-Disposition:_form-data;_name') !== false ||
+                    strpos($arrKeys[0], 'Content-Disposition:_attachment;_name') !== false)) {
+                $this->requestData = array();
+                $this->parseRawHttpRequest($this->requestData);
+            }
+
+            $this->isFormSubmission = true;
         }
     }
 
@@ -422,7 +427,13 @@ class Request
                 if (empty($this->requestData)) {
                     $data = $this->slimRequest->getBody()->getContents();
                     if (!empty($data)) {
-                        $this->requestData = json_decode($data, true);
+                        $data = json_decode($data, true);
+                        if (empty($data)) {
+                            $this->processFormRequestBody();
+                        }
+                        else {
+                            $this->requestData = $data;
+                        }
                     }
                 }
                 if (is_object($this->requestData)) {
