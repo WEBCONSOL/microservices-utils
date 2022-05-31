@@ -183,7 +183,9 @@ class Request
                     // match "name" and optional value in between newline sequences
                     preg_match('/name=\"([^\"]*)\"[\n|\r]+([^\n\r].*)?\r$/s', $block, $matches);
                 }
-                $a_data[$matches[1]] = isset($matches[2]) ? $matches[2] : "";
+                if (!empty($matches) && isset($matches[1])) {
+                    $a_data[$matches[1]] = isset($matches[2]) ? $matches[2] : "";
+                }
             }
         }
     }
