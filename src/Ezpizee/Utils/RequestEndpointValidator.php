@@ -15,7 +15,7 @@ final class RequestEndpointValidator
 
     private function __construct() {}
 
-    public static function validate(string $uri, $data = null, $method = 'GET')
+    public static function validate(string $uri, $data = null, $method = 'GET', bool $stopOnError = true)
     : void
     {
         self::$method = $method;
@@ -27,7 +27,7 @@ final class RequestEndpointValidator
             }
         }
         self::loadEndpointsFromConfig($data, $merge);
-        self::validateUri($uri);
+        self::validateUri($uri, $stopOnError);
     }
 
     private static function loadEndpointsFromConfig($data, bool $merge)
@@ -56,16 +56,36 @@ final class RequestEndpointValidator
         }
     }
 
-    private static function validateUri(string $uri)
+    private static function validateUri(string $uri, bool $stopOnError = true)
     : bool
     {
         $dispatcher = \FastRoute\simpleDispatcher(function(\FastRoute\RouteCollector $r) {
             foreach (self::$endpoints as $endpoint => $cp) {
                 if (is_string($cp)) {
-                    $r->addRoute(self::$method, $endpoint, $cp);
+                    if (self::$method === null) {
+                        self::$method = 'GET';
+                        $r->addRoute(self::$method, $endpoint, $cp);
+                    }
                 }
-                else if (is_array($cp) && isset($cp[self::$method])) {
-                    $r->addRoute(self::$method, $endpoint, $cp[self::$method]);
+                else if (is_array($cp)) {
+                    if (self::$method === null) {
+                        if (isset($cp['GET'])) {
+                            self::$method = 'GET';
+                        }
+                        else if (isset($cp['POST'])) {
+                            self::$method = 'POST';
+                        }
+                        else if (isset($cp['PUT'])) {
+                            self::$method = 'PUT';
+                        }
+                        else if (isset($cp['DELETE'])) {
+                            self::$method = 'DELETE';
+                        }
+                        $r->addRoute(self::$method, $endpoint, $cp[self::$method]);
+                    }
+                    else if (isset($cp[self::$method])) {
+                        $r->addRoute(self::$method, $endpoint, $cp[self::$method]);
+                    }
                 }
             }
         });
@@ -74,32 +94,22 @@ final class RequestEndpointValidator
         $routeInfo = $dispatcher->dispatch(self::$method, $uri);
         switch ($routeInfo[0]) {
             case Dispatcher::NOT_FOUND:
-                throw new RuntimeException(ResponseCodes::MESSAGE_ERROR_ITEM_NOT_FOUND, 404);
+                if ($stopOnError) {
+                    throw new RuntimeException(ResponseCodes::MESSAGE_ERROR_ITEM_NOT_FOUND, 404);
+                }
+                break;
             case Dispatcher::METHOD_NOT_ALLOWED:
-                throw new RuntimeException(ResponseCodes::MESSAGE_ERROR_METHOD_NOT_ALLOWED,
-                    ResponseCodes::CODE_METHOD_NOT_ALLOWED);
+                if ($stopOnError) {
+                    throw new RuntimeException(ResponseCodes::MESSAGE_ERROR_METHOD_NOT_ALLOWED,
+                        ResponseCodes::CODE_METHOD_NOT_ALLOWED);
+                }
+                break;
             case Dispatcher::FOUND:
                 self::$contextProcessorNamespace = $routeInfo[1] . '\\ContextProcessor';
                 self::$uriParams = $routeInfo[2];
                 return true;
         }
         return false;
-        /*foreach (self::$endpoints as $endpoint => $cp) {
-            if (!is_string($cp)) {
-                if (self::$method === null) {
-                    $cp = 'EzpzDummyCP';
-                }
-                else {
-                    $cp = isset($cp[self::$method]) ? $cp[self::$method] : null;
-                }
-            }
-            if (PathUtil::isUriMatch($endpoint, $uri) && $cp) {
-                self::$contextProcessorNamespace = $cp . '\\ContextProcessor';
-                self::$uriParams = PathUtil::getUriArgs($endpoint, $uri);
-                return true;
-            }
-        }
-        return false;*/
     }
 
     public static function getContextProcessorNamespace()
