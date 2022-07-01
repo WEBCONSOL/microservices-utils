@@ -64,8 +64,8 @@ final class RequestEndpointValidator
                 if (is_string($cp)) {
                     if (self::$method === null) {
                         self::$method = 'GET';
-                        $r->addRoute(self::$method, $endpoint, $cp);
                     }
+                    $r->addRoute(self::$method, $endpoint, $cp);
                 }
                 else if (is_array($cp)) {
                     if (self::$method === null) {
@@ -81,9 +81,8 @@ final class RequestEndpointValidator
                         else if (isset($cp['DELETE'])) {
                             self::$method = 'DELETE';
                         }
-                        $r->addRoute(self::$method, $endpoint, $cp[self::$method]);
                     }
-                    else if (isset($cp[self::$method])) {
+                    if (self::$method && isset($cp[self::$method])) {
                         $r->addRoute(self::$method, $endpoint, $cp[self::$method]);
                     }
                 }
