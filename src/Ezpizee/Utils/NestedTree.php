@@ -4,122 +4,45 @@ namespace Ezpizee\Utils;
 
 use Ezpizee\ContextProcessor\DBO;
 
-final class NestedTree
+class NestedTree
 {
+    const ROOT_ID = 'a0a0a0a0a0a0';
+
+    /** @var DBO $dbo */
     private DBO $dbo;
-    private Request $request;
-    private string $userId;
     private string $table;
     private string $referenceId = ''; // ordering_item
     private string $orderingPosition = '';
     private string $parentId = '';
     private string $editId = '';
     private string $insertId = '';
-    //private int $parentLft = 0;
-    private int $parentRgt = 0;
-    private int $nodeLft = 0;
-    private int $nodeRgt = 0;
     private string $nodePath = '';
-    private bool $exists = false;
-    private array $updateStatementList = [];
-    private array $insertFieldList = [];
-    private array $insertValueList = [];
-    private bool $updateChildren = false;
-    private int $newNodeLevel = 0;
     private string $newNodePath = '';
     private string $pathMD5 = '';
     private string $newNodeAlias = '';
-    private bool $error = false;
     private string $msg = '';
     private string $limit = '';
-    private string $rootId = 'a0a0a0a0a0a0';
+    private array $updateStatementList = [];
+    private array $insertFieldList = [];
+    private array $insertValueList = [];
+    private bool $exists = false;
+    private bool $updateChildren = false;
+    private bool $error = false;
+    private int $newNodeLevel = 0;
+    private int $parentRgt = 0;
+    private int $nodeLft = 0;
+    private int $nodeRgt = 0;
+    //private int $parentLft = 0;
 
-    public function __construct(DBO $dbo, Request $request, string $userId, string $table)
+    public function __construct(DBO $dbo, string $table)
     {
-        $this->dbo = $dbo;
-        $this->request = $request;
-        $this->userId = $userId;
         $this->table = $table;
+        $this->dbo = $dbo;
     }
 
-    public function fields(): array
-    {
-        $fields = [];
-        $fields[] = 'parent_id';
-        $fields[] = 'name';
-        $fields[] = 'ordering_position';
-        $fields[] = 'ordering_item';
-        $fields[] = 'description';
-        $fields[] = 'channel';
-        $fields[] = 'asset';
-        $fields[] = 'params';
-        $fields[] = 'published';
-        $fields[] = 'created_by';
-        $fields[] = 'created_at';
-        $fields[] = 'modified_by';
-        $fields[] = 'modified_at';
-        return $fields;
-    }
+    public function setQueryLimit(string $limit): void {$this->limit = $limit;}
 
-    public function values(string $default_ordering_position='first'): array
-    {
-        $now = strtotime('now');
-        $values = array();
-        $values['parent_id'] = '';
-        $values['name'] = $this->dbo->quote($this->request->getRequestParamAsString('name', ''));
-        $values['ordering_position'] = $this->dbo->quote($this->request->getRequestParamAsString('ordering_position', $default_ordering_position));
-        $values['ordering_item'] = $this->dbo->quote($this->request->getRequestParamAsString('ordering_item', ''));
-        $values['description'] = $this->dbo->quote($this->request->getRequestParamAsString('description'));
-        $values['channel'] = $this->dbo->quote($this->request->getRequestParamAsString('channel', '[]'));
-        $values['asset'] = $this->dbo->quote($this->request->getRequestParamAsString('asset', '[]'));
-        $values['params'] = $this->dbo->quote($this->request->getRequestParamAsString('params', ''));
-        $values['published'] = $this->dbo->quote($this->request->getRequestParamAsString('published', '1'));
-        $values['created_by'] = $this->dbo->quote($this->userId);
-        $values['created_at'] = $this->dbo->quote($now);
-        $values['modified_by'] = $this->dbo->quote($this->userId);
-        $values['modified_at'] = $this->dbo->quote($now);
-        return $values;
-    }
-
-    public function addRoot(): void
-    {
-        if (empty($this->dbo->fetchRow('SELECT id'.' FROM '.$this->table.' WHERE id="'.$this->rootId.'"'))) {
-            $now = strtotime('now');
-            $fields = [
-                'id','parent_id','lft','rgt','level','ordering_position','ordering_item','path','path_md5',
-                'name','alias','description','channel','asset','params','published',
-                'created_at','created_by','modified_at','modified_by'
-            ];
-            $values = [
-                'id' => $this->dbo->quote(UUID::id()),
-                'parent_id' => $this->dbo->quote(''),
-                'lft' => $this->dbo->quote('1'),
-                'rgt' => $this->dbo->quote('2'),
-                'level' => $this->dbo->quote('0'),
-                'ordering_position' => $this->dbo->quote('root'),
-                'ordering_item' => $this->dbo->quote(''),
-                'path' => $this->dbo->quote('root'),
-                'path_md5' => $this->dbo->quote(md5('root')),
-                'name' => $this->dbo->quote('root'),
-                'alias' => $this->dbo->quote('root'),
-                'description' => $this->dbo->quote(''),
-                'channel' => $this->dbo->quote('[]'),
-                'asset' => $this->dbo->quote('[]'),
-                'params' => $this->dbo->quote('[]'),
-                'published' => $this->dbo->quote('1'),
-                'created_at' => $this->dbo->quote($now),
-                'created_by' => $this->dbo->quote($this->userId),
-                'modified_at' => $this->dbo->quote($now),
-                'modified_by' => $this->dbo->quote($this->userId)
-            ];
-            $sql = 'INSERT '.'INTO '.$this->table.'('.implode(',', $fields).') VALUES('.implode(',', $values).')';
-            $this->dbo->executeQuery($sql);
-        }
-    }
-
-    public function setQueryLimit(string $limit) {$this->limit = $limit;}
-
-    public function getBranch(int $nodeId, int $ignoreBranch=0, int $depth=1): array
+    public function getBranch(string $nodeId, string $ignoreBranch='', int $depth=1): array
     {
         return $this->dbo->loadAssocList($this->branchQueryStatement($nodeId, $ignoreBranch, $depth));
     }
@@ -133,24 +56,28 @@ final class NestedTree
     {
         $queries = array();
         $queries[] = 'LOCK TABLES ' . $this->table . ' WRITE;';
-        $queries[] = 'SELECT '.'@myLeft := lft, @myRight := rgt, @myWidth := rgt - lft + 1 FROM ' . $this->table . ' WHERE id = ' . $id . ';';
+        $queries[] = 'SELECT '.'@myLeft := lft, @myRight := rgt, @myWidth := rgt - lft + 1 FROM ' . $this->table . ' WHERE id = ' . $this->dbo->quote($id) . ';';
         $queries[] = 'DELETE '.'FROM ' . $this->table . ' WHERE lft BETWEEN @myLeft AND @myRight;';
         $queries[] = 'UPDATE ' . $this->table . ' SET rgt = rgt - @myWidth WHERE rgt > @myRight;';
         $queries[] = 'UPDATE ' . $this->table . ' SET lft = lft - @myWidth WHERE lft > @myRight;';
-        $queries[] = 'UNLOCK TABLES;';
+        $queries[] = 'UNLOCK TABLES';
         $this->dbo->exec(implode("\n", $queries));
-        return true;
+        return empty($this->dbo->getErrors());
     }
 
-    public function store(string $parentId, string $editId, string $title, string $referenceId,
-                          string $orderingPosition, array $updateQuery, array $insertFields,
+    public function store(string $parentId,
+                          string $editId,
+                          string $title,
+                          string $referenceId,
+                          string $orderingPosition,
+                          array $updateQuery,
+                          array $insertFields,
                           array $insertValues): void
     {
-
-        $this->parentId = empty($parentId) ? $this->rootId : $parentId;
+        $this->parentId = $parentId ?? self::ROOT_ID;
         $this->editId = $editId;
         $this->referenceId = $referenceId; // ordering_item
-        $this->orderingPosition = $orderingPosition ? $orderingPosition : 'after';
+        $this->orderingPosition = $orderingPosition ?? 'after';
         $this->updateStatementList = $updateQuery;
         $this->insertFieldList = $insertFields;
         $this->insertValueList = $insertValues;
@@ -184,22 +111,19 @@ final class NestedTree
 
             $queries = $this->storeQueryStatements();
             //die(implode("\n", $queries));
+            $failed = false;
             if (sizeof($queries) > 0) {
                 $this->dbo->setQuery(implode("\n", $queries));
                 $this->dbo->execute();
-                $this->msg = 'SUCCESS';
+                $failed = !empty($this->dbo->getErrors());
+                $this->msg = $failed ? 'FAILED_TO_ADD' : 'SUCCESS';
             }
-            if ($this->updateChildren) {
+            if (!$failed && $this->updateChildren) {
                 $exec = $this->storeUpdateMovedNodeChildren();
-                if ($exec) {
-                    $this->msg = 'SUCCESS';
-                }
-                else {
-                    $this->msg = 'FAILED';
-                }
+                $failed = !empty($this->dbo->getErrors()) || !$exec;
+                $this->msg = $failed ? 'FAILED_TO_UPDATE_CHILDREN' : 'SUCCESS';
             }
-
-            if (!$this->editId) {
+            if (!$this->editId && !$failed) {
                 $this->editId = $this->dbo->lastInsertId();
                 if (!$this->editId) {
                     $sql = 'SELECT id '.'FROM '.$this->table.' WHERE path_md5='.$this->dbo->quote($this->pathMD5);
@@ -208,9 +132,9 @@ final class NestedTree
                         $this->editId = $row['id'];
                     }
                 }
-                if ($this->editId) {
-                    $this->msg = 'SUCCESS';
-                }
+            }
+            if ($this->editId && !$failed) {
+                $this->msg = 'SUCCESS';
                 $this->insertId = $this->editId;
             }
         }
@@ -220,7 +144,8 @@ final class NestedTree
         }
     }
 
-    public function branchQueryStatement(int $nodeId, int $ignoreBranch=0, int $depth=1, string $channel=null): string {
+    public function branchQueryStatement(string $nodeId, string $ignoreBranch='', int $depth=1, string $channel=''): string
+    {
 
         /*$query = 'SELECT node.*, (COUNT(parent.id) - 1) AS depth
                         FROM '.$this->table.' AS node,
@@ -230,7 +155,9 @@ final class NestedTree
                         GROUP BY node.name
                         ORDER BY node.lft';*/
 
-        if ($channel) {$channel = $this->channelConditions($channel, 'node');}
+        if ($channel) {
+            $channel = $this->channelConditions($channel, 'node');
+        }
 
         $subQuery = 'SELECT node.*,(node.level-1) AS depth '.'FROM '.$this->table.' AS node WHERE node.id = '.$this->dbo->quote($nodeId);
         $query = 'SELECT node.*, (COUNT(parent.id) - (sub_tree.depth + 1)) AS depth'.'
@@ -242,7 +169,7 @@ final class NestedTree
             AND node.lft BETWEEN  sub_parent.lft AND sub_parent.rgt
             AND sub_parent.id = sub_tree.id '.
             ($channel ? ' AND ' . $channel : '').
-            ($ignoreBranch > 0 ? ' AND node.id != ' . $this->dbo->quote($ignoreBranch) : '').'
+            (!empty($ignoreBranch) ? ' AND node.id != ' . $this->dbo->quote($ignoreBranch) : '').'
         GROUP BY node.id
         '.($depth?'HAVING depth <= ' . $depth : '').'
         ORDER BY node.lft'.($this->limit ? ' ' . $this->limit : '');
@@ -250,8 +177,8 @@ final class NestedTree
         return $query;
     }
 
-    public function treeQueryStatement(int $ignoreBranch=0, string $channel=null): string {
-
+    public function treeQueryStatement(string $ignoreBranch='', string $channel=''): string
+    {
         if ($ignoreBranch) {
             $children = $this->getBranch($ignoreBranch, 0, 0);
             if ($children) {
@@ -263,14 +190,16 @@ final class NestedTree
             }
         }
 
-        if ($channel) {$channel = $this->channelConditions($channel, 'node');}
+        if ($channel) {
+            $channel = $this->channelConditions($channel, 'node');
+        }
 
         $query = 'SELECT node.*,(COUNT(parent.id) - 1) AS depth'.' 
             FROM '.$this->table.' AS node,'.$this->table.' AS parent 
             WHERE (node.lft BETWEEN parent.lft AND parent.rgt) 
             AND (node.rgt BETWEEN parent.lft AND parent.rgt) '.
             ($channel ? ' AND '.$channel : '').
-            ($ignoreBranch ? ' AND node.id NOT IN('.$ignoreBranch.')' : '').'
+            ($ignoreBranch ? ' AND node.id NOT IN('.$this->dbo->quote($ignoreBranch).')' : '').'
             GROUP BY node.id 
             ORDER BY node.lft'.($this->limit ? ' ' . $this->limit : '');
 
@@ -281,11 +210,12 @@ final class NestedTree
 
     public function getMessage(): string { return $this->msg; }
 
-    public function getEditId(): int {return $this->editId;}
+    public function getEditId(): string {return $this->editId;}
 
-    public function getInsertId(): int {return $this->insertId;}
+    public function getInsertId(): string {return $this->insertId;}
 
-    private function channelConditions(string $channel, string $tbAlias=''): string {
+    private function channelConditions(string $channel, string $tbAlias=''): string
+    {
         if ($channel) {
             $channelCondition = [];
             $arr = explode(',', $channel);
@@ -299,21 +229,30 @@ final class NestedTree
         return $channel;
     }
 
-    private function checkExistence(): bool {
-        $query = 'SELECT id '.'FROM ' . $this->table . ' WHERE path_md5="' . $this->pathMD5 . '"' . ($this->editId ? ' AND id!='.$this->editId : '');
+    private function checkExistence(): bool
+    {
+        $query = 'SELECT id '.'
+        FROM ' . $this->table . '
+        WHERE path_md5="' . $this->pathMD5 . '"' . ($this->editId ? ' AND id!='.$this->editId : '');
         $row = $this->dbo->loadAssoc($query);
         $this->exists = !empty($row) && isset($row['id']);
         return $this->exists;
     }
 
-    private function getChildren(int $id): array {
-        $query = 'SELECT id,path,alias,parent_id,lft,rgt,'.$this->dbo->quoteName('level').' FROM ' . $this->table . ' WHERE parent_id=' . $id . ' ORDER BY lft';
+    private function getChildren(string $id): array
+    {
+        $query = 'SELECT id,path,alias,parent_id,lft,rgt,'.$this->dbo->quoteName('level').' 
+        FROM ' . $this->table . '
+        WHERE parent_id=' . $this->dbo->quote($id) . ' 
+        ORDER BY lft';
         return $this->dbo->loadAssocList($query);
     }
 
-    private function getNode(int $id): array {
-
-        $query = 'SELECT id,path,alias,parent_id,lft,rgt,'.$this->dbo->quoteName('level').' FROM ' . $this->table . ' WHERE id='.$this->dbo->quote($id);
+    private function getNode(string $id): array
+    {
+        $query = 'SELECT id,path,alias,parent_id,lft,rgt,'.$this->dbo->quoteName('level').'
+        FROM ' . $this->table . '
+        WHERE id='.$this->dbo->quote($id);
         $row = $this->dbo->loadAssoc($query);
 
         // Check for no $row returned
@@ -323,18 +262,18 @@ final class NestedTree
 
         // Do some simple calculations.
         $row['numChildren'] = (int) ($row['rgt'] - $row['lft'] - 1) / 2;
-        $row['width'] = (int) $row['rgt'] - $row['lft'] + 1;
+        $row['width'] = (int) $row['rgt'] - (int)$row['lft'] + 1;
 
         return $row;
     }
 
-    private function storeQueryStatements(): array {
-
+    private function storeQueryStatements(): array
+    {
         // 1. add new node
-        if (!$this->editId) {
+        if (empty($this->editId)) {
 
             // 1.1. item
-            if ($this->referenceId) {
+            if (!empty($this->referenceId)) {
 
                 // 1.1.1. before
                 if ($this->orderingPosition === "before") {
@@ -352,7 +291,6 @@ final class NestedTree
                                 else {
                                     return $this->storeAddNodeQueryAsArray('after', $rows[$i-1]['id']);
                                 }
-                                break;
                             }
                         }
                     }
@@ -420,54 +358,51 @@ final class NestedTree
         return [];
     }
 
-    private function storeUpdateMovedNodeChildren(): int {
-
+    private function storeUpdateMovedNodeChildren(): bool
+    {
         $row = $this->getNode($this->editId);
-        $query = 'UPDATE ' . $this->table . ' SET '.
-            'path=CONCAT("'.$row['path'].'/",alias),path_md5=MD5(CONCAT("'.$row['path'].'/",alias)),'.$this->dbo->quoteName('level').'='.($this->newNodeLevel+1).' '.
-            'WHERE path LIKE "'.$this->nodePath.'/%" AND id!='.$this->dbo->quote($this->editId);
+        $query = 'UPDATE ' . $this->table . ' SET
+        path=CONCAT("'.$row['path'].'/",alias)
+        ,path_md5=MD5(CONCAT("'.$row['path'].'/",alias))
+        ,'.$this->dbo->quoteName('level').'='.($this->newNodeLevel+1).'
+        WHERE path LIKE "'.$this->nodePath.'/%" AND id!='.$this->dbo->quote($this->editId);
         return $this->dbo->exec($query);
     }
 
-    /**
-     * @param string $title
-     */
-    private function storeSetAlias(string $title) {
-        if ($this->parentId > 0) {
+    private function storeSetAlias(string $title): void
+    {
+        if (!empty($this->parentId)) {
             $this->newNodeAlias = PathUtil::toSlug($title);
         }
     }
 
-    private function storePreparePropertiesByParent() {
-        if ($this->parentId > 0 && $this->newNodeAlias) {
+    private function storePreparePropertiesByParent(): void
+    {
+        if (!empty($this->parentId) && $this->newNodeAlias) {
             $row = $this->getNode($this->parentId);
             if (sizeof($row) > 0) {
                 //$this->parentLft = $row['lft'];
                 $this->parentRgt = $row['rgt'];
-                $this->newNodeLevel = (int)$row['level']+1;
+                $this->newNodeLevel = ((int)$row['level'])+1;
                 $this->newNodePath = $row['path'].($row['path']?'/':'').$this->newNodeAlias;
                 $this->pathMD5 = md5($this->newNodePath);
             }
         }
     }
 
-    /**
-     * @return array $queries
-     */
-    private function storeUpdateNodeQueryAsArray(): array {
-        $queries = array();
-        $queries[] = 'UPDATE ' . $this->table .
-            ' SET ' . (is_array($this->updateStatementList) ? implode(',', $this->updateStatementList) : $this->updateStatementList) .
-            ' WHERE id='.$this->editId . ';';
+    private function storeUpdateNodeQueryAsArray(): array
+    {
+        $queries = [];
+        $set = is_array($this->updateStatementList)
+            ? implode(',', $this->updateStatementList)
+            : $this->updateStatementList;
+        $queries[] = 'UPDATE ' . $this->table . ' SET ' . $set . ' WHERE id='.$this->dbo->quote($this->editId). ';';
         return $queries;
     }
 
-    /**
-     * @return array
-     */
-    private function storeMoveNodeByReferenceNodeQueryAsArray(): array {
-
-        $queries = array();
+    private function storeMoveNodeByReferenceNodeQueryAsArray(): array
+    {
+        $queries = [];
         $newPos = 0;
         $row = $this->getNode($this->referenceId);
 
@@ -504,20 +439,17 @@ final class NestedTree
             // update other properties
             $queries[] = 'UPDATE ' . $this->table .
                 ' SET ' . (is_array($this->updateStatementList) ? implode(',', $this->updateStatementList) : $this->updateStatementList) .
-                ' WHERE id=' . $this->editId . ';';
+                ' WHERE id=' . $this->dbo->quote($this->editId) . ';';
 
             // unlock
-            $queries[] = 'UNLOCK TABLES;';
+            $queries[] = 'UNLOCK TABLES';
         }
 
         return $queries;
     }
 
-    /**
-     * @return array $queries
-     */
-    private function storeMoveNodeAsLastChildNodeQueryAsArray(): array {
-
+    private function storeMoveNodeAsLastChildNodeQueryAsArray(): array
+    {
         $queries = array();
         $queries[] = 'LOCK TABLES '.$this->table.' WRITE;';
 
@@ -551,48 +483,45 @@ final class NestedTree
         $queries[] = 'UPDATE ' . $this->table . ' SET parent_id = @parent_id WHERE id = @node_id;';
 
         // step 5: update other properties
-        $queries[] = 'UPDATE ' . $this->table .
-            ' SET ' . (is_array($this->updateStatementList) ? implode(',', $this->updateStatementList) : $this->updateStatementList) .
-            ' WHERE id='.$this->editId . ';';
+        $set = is_array($this->updateStatementList)
+            ? implode(',', $this->updateStatementList)
+            : $this->updateStatementList;
+        $queries[] = 'UPDATE ' . $this->table . ' SET ' . $set . ' WHERE id=' . $this->dbo->quote($this->editId) . ';';
 
         // unlock
-        $queries[] = 'UNLOCK TABLES;';
+        $queries[] = 'UNLOCK TABLES';
 
         return $queries;
     }
 
-    /**
-     * @param string $position
-     * @param int    $nodeId
-     *
-     * @return array
-     */
-    private function storeAddNodeQueryAsArray(string $position, int $nodeId = 0): array {
-
-        $queries = array();
+    private function storeAddNodeQueryAsArray(string $position, string $nodeId=''): array
+    {
+        $queries = [];
         $queries[] = 'LOCK TABLES '.$this->table.' WRITE;';
 
         if ($nodeId) {
-            $queries[] = 'SELECT @myPosition := rgt '.'FROM ' . $this->table . ' WHERE id=' . $nodeId . ';';
+            $queries[] = 'SELECT @myPosition := rgt '.'FROM ' . $this->table . ' WHERE id=' . $this->dbo->quote($nodeId) . ';';
             $queries[] = 'UPDATE '.$this->table.' SET lft = lft + 2 WHERE lft > @myPosition;';
             $queries[] = 'UPDATE '.$this->table.' SET rgt = rgt + 2 WHERE rgt > @myPosition;';
         }
         else if ($position === 'first') {
-            $queries[] = 'SELECT @myPosition := lft '.'FROM '.$this->table.' WHERE id='.$this->parentId.';';
+            $queries[] = 'SELECT @myPosition := lft '.'FROM '.$this->table.' WHERE id='.$this->dbo->quote($this->parentId).';';
             $queries[] = 'UPDATE '.$this->table.' SET lft = lft + 2 WHERE lft > @myPosition;';
             $queries[] = 'UPDATE '.$this->table.' SET rgt = rgt + 2 WHERE rgt > @myPosition;';
         }
         else if ($position === 'last') {
-            $queries[] = 'SELECT @myPosition := (rgt-1) '.'FROM '.$this->table.' WHERE id='.$this->parentId.';';
+            $queries[] = 'SELECT @myPosition := (rgt-1) '.'FROM '.$this->table.' WHERE id='.$this->dbo->quote($this->parentId).';';
             $queries[] = 'UPDATE '.$this->table.' SET lft = lft + 2 WHERE lft > @myPosition;';
             $queries[] = 'UPDATE '.$this->table.' SET rgt = rgt + 2 WHERE rgt > @myPosition;';
         }
 
-        $queries[] = 'INSERT '.'INTO ' . $this->table . '(' .
-            (is_array($this->insertFieldList) ? implode(',', $this->insertFieldList) : $this->insertFieldList) .
-            ') VALUES(' . implode(',', $this->insertValueList) . ');';
+        $fields = is_array($this->insertFieldList)
+            ? implode(',', $this->insertFieldList)
+            : $this->insertFieldList;
+        $queries[] = 'INSERT '.'INTO ' . $this->table . '(' . $fields . ') 
+        VALUES(' . implode(',', $this->insertValueList) . ');';
 
-        $queries[] = 'UNLOCK TABLES;';
+        $queries[] = 'UNLOCK TABLES';
 
         return $queries;
     }
