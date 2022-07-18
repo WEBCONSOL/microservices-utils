@@ -211,9 +211,6 @@ final class NestedTree
                 if ($this->editId) {
                     $this->msg = 'SUCCESS';
                 }
-                if (is_string($this->editId)) {
-                    $this->editId = (int) $this->editId;
-                }
                 $this->insertId = $this->editId;
             }
         }
@@ -345,7 +342,7 @@ final class NestedTree
                     $length = sizeof($rows);
                     if ($length) {
                         foreach ($rows as $i=>$row) {
-                            if ((int)$row['id'] === $this->referenceId) {
+                            if ($row['id'] === $this->referenceId) {
                                 if ($i===0) {
                                     return $this->storeAddNodeQueryAsArray('first');
                                 }
@@ -392,7 +389,7 @@ final class NestedTree
             $this->nodeLft = $row['lft'];
             $this->nodeRgt = $row['rgt'];
             $this->nodePath = $row['path'];
-            $this->updateChildren = (int)$this->parentId !== (int)$row['parent_id'];
+            $this->updateChildren = $this->parentId !== $row['parent_id'];
             if ($this->referenceId) {
                 return $this->storeMoveNodeByReferenceNodeQueryAsArray();
             }
