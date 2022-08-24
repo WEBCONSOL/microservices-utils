@@ -20,12 +20,12 @@
     "php": ">=7.1.0",
     "ext-json": "*",
     "ext-libxml": "*",
-    "ext-simplexml": "*",
-    "nikic/fast-route": "^1.0"
+    "ext-simplexml": "*"
   },
   "autoload": {
     "psr-0": {
       "Ezpizee\\Utils": "src/"
-    }
+    },
+    "files": ["src/Ezpizee/Utils/FastRoute/functions.php"]
   }
 }
