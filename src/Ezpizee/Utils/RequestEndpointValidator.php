@@ -2,7 +2,9 @@
 
 namespace Ezpizee\Utils;
 
-use FastRoute\Dispatcher;
+use Ezpizee\Utils\FastRoute\Dispatcher;
+use Ezpizee\Utils\FastRoute\RouteCollector;
+use Ezpizee\Utils\FastRoute\SimpleDispatcher;
 use RuntimeException;
 
 final class RequestEndpointValidator
@@ -59,7 +61,7 @@ final class RequestEndpointValidator
     private static function validateUri(string $uri, bool $stopOnError = true)
     : bool
     {
-        $dispatcher = \FastRoute\simpleDispatcher(function(\FastRoute\RouteCollector $r) {
+        $dispatcher = SimpleDispatcher::invoke(function(RouteCollector $r) {
             foreach (self::$endpoints as $endpoint => $cp) {
                 if (is_string($cp)) {
                     if (self::$method === null) {

@@ -25,7 +25,6 @@
   "autoload": {
     "psr-0": {
       "Ezpizee\\Utils": "src/"
-    },
-    "files": ["src/Ezpizee/Utils/FastRoute/functions.php"]
+    }
   }
 }
