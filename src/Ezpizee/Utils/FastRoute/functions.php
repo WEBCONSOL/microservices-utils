@@ -2,7 +2,7 @@
 
 namespace Ezpizee\Utils\FastRoute;
 
-if (!function_exists('FastRoute\simpleDispatcher')) {
+if (!function_exists('Ezpizee\Utils\FastRoute\simpleDispatcher')) {
     /**
      * @param callable $routeDefinitionCallback
      * @param array $options
@@ -12,10 +12,10 @@ if (!function_exists('FastRoute\simpleDispatcher')) {
     function simpleDispatcher(callable $routeDefinitionCallback, array $options = [])
     {
         $options += [
-            'routeParser' => 'FastRoute\\RouteParser\\Std',
-            'dataGenerator' => 'FastRoute\\DataGenerator\\GroupCountBased',
-            'dispatcher' => 'FastRoute\\Dispatcher\\GroupCountBased',
-            'routeCollector' => 'FastRoute\\RouteCollector',
+            'routeParser' => 'Ezpizee\\Utils\\FastRoute\\RouteParser\\Std',
+            'dataGenerator' => 'Ezpizee\\Utils\\FastRoute\\DataGenerator\\GroupCountBased',
+            'dispatcher' => 'Ezpizee\\Utils\\FastRoute\\Dispatcher\\GroupCountBased',
+            'routeCollector' => 'Ezpizee\\Utils\\FastRoute\\RouteCollector',
         ];
 
         /** @var RouteCollector $routeCollector */
@@ -36,10 +36,10 @@ if (!function_exists('FastRoute\simpleDispatcher')) {
     function cachedDispatcher(callable $routeDefinitionCallback, array $options = [])
     {
         $options += [
-            'routeParser' => 'FastRoute\\RouteParser\\Std',
-            'dataGenerator' => 'FastRoute\\DataGenerator\\GroupCountBased',
-            'dispatcher' => 'FastRoute\\Dispatcher\\GroupCountBased',
-            'routeCollector' => 'FastRoute\\RouteCollector',
+            'routeParser' => 'Ezpizee\\Utils\\FastRoute\\RouteParser\\Std',
+            'dataGenerator' => 'Ezpizee\\Utils\\FastRoute\\DataGenerator\\GroupCountBased',
+            'dispatcher' => 'Ezpizee\\Utils\\FastRoute\\Dispatcher\\GroupCountBased',
+            'routeCollector' => 'Ezpizee\\Utils\\FastRoute\\RouteCollector',
             'cacheDisabled' => false,
         ];
 
